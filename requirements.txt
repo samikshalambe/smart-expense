@@ -1,0 +1,10 @@
+streamlit
+mysql-connector-python
+pandas
+scikit-learn
+pdfplumber
+plotly
+qrcode
+Pillow
+fpdf2
+bcrypt
