@@ -6,7 +6,7 @@ from utils.db_manager import get_categories, add_expense, execute_query, clear_a
 from utils.pdf_processor import parse_bank_statement
 from utils.forecaster import get_budget_status
 from utils.upi_helper import generate_upi_qr
-from utils.auth import check_login, get_user_details
+from utils.auth import check_login, get_user_details, register_user
 from utils.report_gen import generate_pdf_report
 
 st.set_page_config(page_title="SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="expanded")
@@ -83,70 +83,25 @@ st.markdown("""
         background: rgba(10, 15, 30, 0.98) !important;
         border-right: 1px solid rgba(255,255,255,0.06) !important;
     }
-
-    [data-testid="stSidebar"] [data-testid="stRadio"] > label {
-        display: none !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stRadio"] > div {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 2px !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stRadio"] label {
-        display: flex !important;
-        align-items: center !important;
-        gap: 10px !important;
-        padding: 10px 16px !important;
-        border-radius: 10px !important;
-        cursor: pointer !important;
-        transition: background 0.15s !important;
-        border-left: 3px solid transparent !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
-        background: rgba(99,102,241,0.1) !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
-        background: rgba(99,102,241,0.18) !important;
-        border-left: 3px solid #818cf8 !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stRadio"] input[type="radio"] {
-        display: none !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stRadio"] label > div > p {
-        font-size: 14px !important;
-        color: #94a3b8 !important;
-        margin: 0 !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) > div > p {
-        color: #e0e7ff !important;
-        font-weight: 500 !important;
-    }
+    [data-testid="stSidebar"] [data-testid="stRadio"] > label { display: none !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] > div { display: flex !important; flex-direction: column !important; gap: 2px !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label { display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 16px !important; border-radius: 10px !important; cursor: pointer !important; transition: background 0.15s !important; border-left: 3px solid transparent !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background: rgba(99,102,241,0.1) !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) { background: rgba(99,102,241,0.18) !important; border-left: 3px solid #818cf8 !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] input[type="radio"] { display: none !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label > div > p { font-size: 14px !important; color: #94a3b8 !important; margin: 0 !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) > div > p { color: #e0e7ff !important; font-weight: 500 !important; }
 
     /* ── Page card styles ── */
-    .hero-card {
-        background: rgba(30, 41, 59, 0.7);
-        border: 1px solid rgba(255,255,255,0.07);
-        border-radius: 18px;
-        padding: 20px;
-        margin-bottom: 12px;
-    }
+    .hero-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.07); border-radius: 18px; padding: 20px; margin-bottom: 12px; }
     .hero-label  { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:0.07em; margin:0 0 4px; }
     .hero-amount { font-size:36px; font-weight:600; color:#f8fafc; margin:0 0 14px; }
     .progress-track { height:6px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden; margin-bottom:8px; }
     .progress-fill-ok   { height:100%; border-radius:99px; background:#22c55e; }
     .progress-fill-warn { height:100%; border-radius:99px; background:#ef4444; }
     .progress-meta { display:flex; justify-content:space-between; font-size:11px; color:#64748b; }
-
     .warn-strip { background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.25); border-radius:10px; padding:10px 14px; font-size:12px; color:#fca5a5; margin-bottom:12px; line-height:1.5; }
     .ok-strip   { background:rgba(34,197,94,0.1);  border:1px solid rgba(34,197,94,0.2);  border-radius:10px; padding:10px 14px; font-size:12px; color:#86efac;  margin-bottom:12px; line-height:1.5; }
-
     .txn-card { background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.07); border-radius:14px; overflow:hidden; margin-bottom:12px; }
     .txn-row  { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
     .txn-row:last-child { border-bottom:none; }
@@ -155,7 +110,6 @@ st.markdown("""
     .txn-meta { font-size:11px; color:#64748b; }
     .txn-amt  { font-size:13px; font-weight:500; color:#f87171; }
     .section-head { font-size:11px; font-weight:500; color:#64748b; text-transform:uppercase; letter-spacing:0.07em; margin:16px 0 8px; }
-
     .settings-card { background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.07); border-radius:14px; padding:16px; margin-bottom:10px; }
     .settings-label { font-size:13px; font-weight:500; color:#f1f5f9; margin:0 0 4px; }
     .settings-sub   { font-size:11px; color:#64748b; margin:0 0 10px; }
@@ -167,23 +121,45 @@ for key, default in [("logged_in", False), ("username", None)]:
     if key not in st.session_state:
         st.session_state[key] = default
 
-# ── LOGIN ───────────────────────────────────────────────────────
+# ── LOGIN / REGISTER ────────────────────────────────────────────
 if not st.session_state["logged_in"]:
     st.markdown("<br><br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1, 2, 1])
     with col:
         st.markdown("<h1 style='text-align:center;font-size:2.5rem;'>✨ SmartExpense</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center;color:#94a3b8;margin-bottom:20px;'>Sign in to your dashboard</p>", unsafe_allow_html=True)
-        with st.form("login_form"):
-            user = st.text_input("Username")
-            pw   = st.text_input("Password", type="password")
-            if st.form_submit_button("Login"):
-                if check_login(user, pw):
-                    st.session_state["logged_in"] = True
-                    st.session_state["username"]  = user
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password.")
+        st.markdown("<p style='text-align:center;color:#94a3b8;margin-bottom:20px;'>Your smart household finance manager</p>", unsafe_allow_html=True)
+
+        tab_login, tab_register = st.tabs(["Login", "Register"])
+
+        with tab_login:
+            with st.form("login_form"):
+                user = st.text_input("Username")
+                pw   = st.text_input("Password", type="password")
+                if st.form_submit_button("Login", use_container_width=True):
+                    if check_login(user, pw):
+                        st.session_state["logged_in"] = True
+                        st.session_state["username"]  = user
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password.")
+
+        with tab_register:
+            with st.form("register_form"):
+                new_name = st.text_input("Full Name")
+                new_user = st.text_input("Username")
+                new_pw   = st.text_input("Password", type="password")
+                new_pw2  = st.text_input("Confirm Password", type="password")
+                if st.form_submit_button("Create Account", use_container_width=True):
+                    if not new_name or not new_user or not new_pw:
+                        st.error("Please fill in all fields.")
+                    elif new_pw != new_pw2:
+                        st.error("Passwords do not match.")
+                    elif len(new_pw) < 6:
+                        st.error("Password must be at least 6 characters.")
+                    elif register_user(new_user, new_pw, new_name):
+                        st.success("Account created! You can now log in.")
+                    else:
+                        st.error("Username already taken — please choose another.")
     st.stop()
 
 # ── LEFT SIDEBAR NAV ────────────────────────────────────────────
@@ -250,9 +226,9 @@ if page == "Dashboard":
         st.markdown('<div class="ok-strip">✓ Your spending is on track for this month.</div>', unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
-    with c1: st.metric("Current Spending", f"₹{current:,.0f}")
+    with c1: st.metric("Current Spending",  f"₹{current:,.0f}")
     with c2: st.metric("Month-end Forecast", f"₹{forecast:,.0f}")
-    with c3: st.metric("Remaining Budget", f"₹{max(budget - current, 0):,.0f}")
+    with c3: st.metric("Remaining Budget",   f"₹{max(budget - current, 0):,.0f}")
 
     cat_data = execute_query("SELECT category, amount FROM expenses", fetch=True)
     if cat_data:
