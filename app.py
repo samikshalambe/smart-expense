@@ -9,7 +9,7 @@ from utils.upi_helper import generate_upi_qr
 from utils.auth import check_login, get_user_details, register_user
 from utils.report_gen import generate_pdf_report
 
-st.set_page_config(page_title="SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="expanded")
+st.set_page_config(page_title="SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
@@ -78,19 +78,44 @@ st.markdown("""
         border-left: 4px solid #6366f1;
     }
 
-    /* ── LEFT SIDEBAR ── */
-    [data-testid="stSidebar"] {
-        background: rgba(10, 15, 30, 0.98) !important;
-        border-right: 1px solid rgba(255,255,255,0.06) !important;
+    /* ── HIDE SIDEBAR ── */
+    [data-testid="stSidebar"] { display: none !important; }
+    [data-testid="collapsedControl"] { display: none !important; }
+
+    /* ── TOP NAV via st.radio ── */
+    div[data-testid="stRadio"] {
+        background: rgba(10, 15, 30, 0.97) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        padding: 8px 0 !important;
+        margin: -2rem -2.5rem 1.5rem -2.5rem !important;
     }
-    [data-testid="stSidebar"] [data-testid="stRadio"] > label { display: none !important; }
-    [data-testid="stSidebar"] [data-testid="stRadio"] > div { display: flex !important; flex-direction: column !important; gap: 2px !important; }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label { display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 16px !important; border-radius: 10px !important; cursor: pointer !important; transition: background 0.15s !important; border-left: 3px solid transparent !important; }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background: rgba(99,102,241,0.1) !important; }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) { background: rgba(99,102,241,0.18) !important; border-left: 3px solid #818cf8 !important; }
-    [data-testid="stSidebar"] [data-testid="stRadio"] input[type="radio"] { display: none !important; }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label > div > p { font-size: 14px !important; color: #94a3b8 !important; margin: 0 !important; }
-    [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) > div > p { color: #e0e7ff !important; font-weight: 500 !important; }
+    div[data-testid="stRadio"] > label { display: none !important; }
+    div[data-testid="stRadio"] > div {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 0 !important;
+        max-width: 900px !important;
+        margin: 0 auto !important;
+    }
+    div[data-testid="stRadio"] label {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2px !important;
+        padding: 6px 12px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        transition: background 0.15s !important;
+        border-bottom: 3px solid transparent !important;
+    }
+    div[data-testid="stRadio"] label:hover { background: rgba(99,102,241,0.1) !important; }
+    div[data-testid="stRadio"] label:has(input:checked) { border-bottom: 3px solid #818cf8 !important; }
+    div[data-testid="stRadio"] input[type="radio"] { display: none !important; }
+    div[data-testid="stRadio"] label > div > p { font-size: 12px !important; color: #94a3b8 !important; margin: 0 !important; }
+    div[data-testid="stRadio"] label:has(input:checked) > div > p { color: #e0e7ff !important; font-weight: 500 !important; }
 
     /* ── Page card styles ── */
     .hero-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.07); border-radius: 18px; padding: 20px; margin-bottom: 12px; }
@@ -162,28 +187,20 @@ if not st.session_state["logged_in"]:
                         st.error("Username already taken — please choose another.")
     st.stop()
 
-# ── LEFT SIDEBAR NAV ────────────────────────────────────────────
-NAV_OPTIONS = ["⊞  Dashboard", "⊕  Add Expense", "⊜  Smart Upload", "₹  Split & Settle", "⚙  Settings"]
+# ── TOP NAV ─────────────────────────────────────────────────────
+NAV_OPTIONS = ["⊞\nDashboard", "⊕\nAdd", "⊜\nUpload", "₹\nSplit", "⚙\nSettings"]
 NAV_KEYS    = ["Dashboard", "Add Expense", "Smart Upload", "Split & Settle", "Settings"]
 
-with st.sidebar:
-    st.markdown(f"""
-    <div style="padding:20px 16px 12px;">
-      <p style="font-size:20px;font-weight:600;color:#e0e7ff;margin:0;">✨ SmartExpense</p>
-      <p style="font-size:12px;color:#64748b;margin:4px 0 0;">{get_user_details(st.session_state['username'])}</p>
-    </div>
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0 16px 12px;">
-    """, unsafe_allow_html=True)
+selected_label = st.radio("nav", NAV_OPTIONS, horizontal=True, label_visibility="hidden")
+page = NAV_KEYS[NAV_OPTIONS.index(selected_label)]
 
-    selected_label = st.radio("nav", NAV_OPTIONS, label_visibility="hidden")
-    page = NAV_KEYS[NAV_OPTIONS.index(selected_label)]
-
-    st.markdown("<div style='position:absolute;bottom:20px;width:calc(100% - 32px);'>", unsafe_allow_html=True)
-    if st.button("↩  Log Out", key="logout"):
+# Logout button — top right
+_, out_col = st.columns([6, 1])
+with out_col:
+    if st.button("↩", help="Log out", key="logout"):
         st.session_state["logged_in"] = False
         st.session_state["username"]  = None
         st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # ── DASHBOARD ───────────────────────────────────────────────────
 if page == "Dashboard":
