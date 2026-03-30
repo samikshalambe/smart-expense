@@ -9,7 +9,12 @@ from utils.upi_helper import generate_upi_qr
 from utils.auth import check_login, get_user_details, register_user
 from utils.report_gen import generate_pdf_report
 
-st.set_page_config(page_title="SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="SmartExpense",
+    layout="wide",
+    page_icon="💰",
+    initial_sidebar_state="collapsed"
+)
 
 st.markdown("""
     <style>
@@ -18,7 +23,9 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Outfit', sans-serif; }
     .stApp { background: radial-gradient(circle at top left, #1e1b4b, #0f172a 40%, #020617); }
     #MainMenu, footer, header { visibility: hidden; }
-    .block-container { padding: 2rem 2.5rem 2rem 2.5rem !important; max-width: 900px !important; }
+    [data-testid="stSidebar"] { display: none !important; }
+    [data-testid="collapsedControl"] { display: none !important; }
+    .block-container { padding: 1.5rem 2rem 2rem 2rem !important; max-width: 900px !important; }
 
     h1, h2, h3 {
         background: linear-gradient(to right, #e0e7ff, #818cf8);
@@ -78,46 +85,12 @@ st.markdown("""
         border-left: 4px solid #6366f1;
     }
 
-    /* ── HIDE SIDEBAR ── */
-    [data-testid="stSidebar"] { display: none !important; }
-    [data-testid="collapsedControl"] { display: none !important; }
+    .stTabs [data-baseweb="tab-list"] {
+        background: rgba(30, 41, 59, 0.3);
+        border-radius: 10px;
+        padding: 4px;
+    }
 
-    /* ── TOP NAV via st.radio ── */
-    div[data-testid="stRadio"] {
-        background: rgba(10, 15, 30, 0.97) !important;
-        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-        padding: 8px 0 !important;
-        margin: -2rem -2.5rem 1.5rem -2.5rem !important;
-    }
-    div[data-testid="stRadio"] > label { display: none !important; }
-    div[data-testid="stRadio"] > div {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: space-around !important;
-        align-items: center !important;
-        flex-wrap: wrap !important;
-        gap: 0 !important;
-        max-width: 900px !important;
-        margin: 0 auto !important;
-    }
-    div[data-testid="stRadio"] label {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        gap: 2px !important;
-        padding: 6px 12px !important;
-        border-radius: 8px !important;
-        cursor: pointer !important;
-        transition: background 0.15s !important;
-        border-bottom: 3px solid transparent !important;
-    }
-    div[data-testid="stRadio"] label:hover { background: rgba(99,102,241,0.1) !important; }
-    div[data-testid="stRadio"] label:has(input:checked) { border-bottom: 3px solid #818cf8 !important; }
-    div[data-testid="stRadio"] input[type="radio"] { display: none !important; }
-    div[data-testid="stRadio"] label > div > p { font-size: 12px !important; color: #94a3b8 !important; margin: 0 !important; }
-    div[data-testid="stRadio"] label:has(input:checked) > div > p { color: #e0e7ff !important; font-weight: 500 !important; }
-
-    /* ── Page card styles ── */
     .hero-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.07); border-radius: 18px; padding: 20px; margin-bottom: 12px; }
     .hero-label  { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:0.07em; margin:0 0 4px; }
     .hero-amount { font-size:36px; font-weight:600; color:#f8fafc; margin:0 0 14px; }
@@ -187,20 +160,77 @@ if not st.session_state["logged_in"]:
                         st.error("Username already taken — please choose another.")
     st.stop()
 
-# ── TOP NAV ─────────────────────────────────────────────────────
-NAV_OPTIONS = ["⊞\nDashboard", "⊕\nAdd", "⊜\nUpload", "₹\nSplit", "⚙\nSettings"]
-NAV_KEYS    = ["Dashboard", "Add Expense", "Smart Upload", "Split & Settle", "Settings"]
-
-selected_label = st.radio("nav", NAV_OPTIONS, horizontal=True, label_visibility="hidden")
-page = NAV_KEYS[NAV_OPTIONS.index(selected_label)]
-
-# Logout button — top right
-_, out_col = st.columns([6, 1])
-with out_col:
-    if st.button("↩", help="Log out", key="logout"):
+# ── NAVIGATION BAR ──────────────────────────────────────────────
+try:
+    from streamlit_navigation_bar import st_navbar
+    page = st_navbar(
+        ["Dashboard", "Add", "Upload", "Split", "Settings", "Log Out"],
+        styles={
+            "nav": {
+                "background-color": "rgba(10, 15, 30, 0.97)",
+                "border-bottom": "1px solid rgba(255,255,255,0.08)",
+                "font-family": "Outfit, sans-serif",
+            },
+            "div": {"max-width": "900px"},
+            "span": {
+                "color": "#94a3b8",
+                "font-size": "14px",
+                "font-weight": "400",
+                "padding": "0 8px",
+            },
+            "active": {
+                "color": "#e0e7ff",
+                "font-weight": "600",
+                "border-bottom": "3px solid #818cf8",
+                "padding-bottom": "4px",
+            },
+            "hover": {"color": "#e0e7ff"},
+        },
+        options={"show_menu": False, "show_sidebar": False},
+    )
+    if page == "Log Out":
         st.session_state["logged_in"] = False
         st.session_state["username"]  = None
         st.rerun()
+    page_map = {
+        "Dashboard": "Dashboard",
+        "Add":       "Add Expense",
+        "Upload":    "Smart Upload",
+        "Split":     "Split & Settle",
+        "Settings":  "Settings",
+    }
+    page = page_map.get(page, "Dashboard")
+
+except ImportError:
+    # Fallback if package not installed — use styled radio
+    NAV_OPTIONS = ["⊞ Dashboard", "⊕ Add", "⊜ Upload", "₹ Split", "⚙ Settings"]
+    NAV_KEYS    = ["Dashboard", "Add Expense", "Smart Upload", "Split & Settle", "Settings"]
+    st.markdown("""
+    <style>
+    div[data-testid="stRadio"] {
+        background: rgba(10,15,30,0.97) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        padding: 8px 0 !important;
+        margin: -1.5rem -2rem 1.5rem -2rem !important;
+    }
+    div[data-testid="stRadio"] > label { display: none !important; }
+    div[data-testid="stRadio"] > div { display: flex !important; flex-direction: row !important; justify-content: space-around !important; max-width: 900px !important; margin: 0 auto !important; }
+    div[data-testid="stRadio"] label { display: flex !important; align-items: center !important; padding: 8px 14px !important; border-radius: 8px !important; cursor: pointer !important; border-bottom: 3px solid transparent !important; }
+    div[data-testid="stRadio"] label:has(input:checked) { border-bottom: 3px solid #818cf8 !important; }
+    div[data-testid="stRadio"] input[type="radio"] { display: none !important; }
+    div[data-testid="stRadio"] label > div > p { font-size: 13px !important; color: #94a3b8 !important; margin: 0 !important; }
+    div[data-testid="stRadio"] label:has(input:checked) > div > p { color: #e0e7ff !important; font-weight: 600 !important; }
+    </style>
+    """, unsafe_allow_html=True)
+    col_nav, col_out = st.columns([8, 1])
+    with col_nav:
+        sel = st.radio("nav", NAV_OPTIONS, horizontal=True, label_visibility="hidden")
+        page = NAV_KEYS[NAV_OPTIONS.index(sel)]
+    with col_out:
+        if st.button("↩", help="Log out", key="logout"):
+            st.session_state["logged_in"] = False
+            st.session_state["username"]  = None
+            st.rerun()
 
 # ── DASHBOARD ───────────────────────────────────────────────────
 if page == "Dashboard":
@@ -243,7 +273,7 @@ if page == "Dashboard":
         st.markdown('<div class="ok-strip">✓ Your spending is on track for this month.</div>', unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
-    with c1: st.metric("Current Spending",  f"₹{current:,.0f}")
+    with c1: st.metric("Current Spending",   f"₹{current:,.0f}")
     with c2: st.metric("Month-end Forecast", f"₹{forecast:,.0f}")
     with c3: st.metric("Remaining Budget",   f"₹{max(budget - current, 0):,.0f}")
 
@@ -274,7 +304,7 @@ if page == "Dashboard":
                                showlegend=True, legend=dict(font=dict(color="#94a3b8")))
             st.plotly_chart(fig2, use_container_width=True)
     else:
-        st.info("No expenses yet. Add one via the sidebar or upload a PDF statement.")
+        st.info("No expenses yet. Add one using the nav above or upload a PDF statement.")
 
     recent = execute_query(
         "SELECT date, category, amount, description FROM expenses ORDER BY date DESC LIMIT 8",

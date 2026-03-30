@@ -8,3 +8,4 @@ qrcode
 Pillow
 fpdf2
 bcrypt
+streamlit-community-navigation-bar
