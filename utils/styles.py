@@ -11,7 +11,9 @@ html, body, [class*="css"] {
                  'Helvetica Neue', Arial, sans-serif;
 }
 .stApp { background: radial-gradient(circle at top left, #1e1b4b, #0f172a 40%, #020617); }
-#MainMenu, footer, header { visibility: hidden; }
+/* Hide Streamlit chrome — but NOT 'header': that's where the mobile hamburger lives */
+#MainMenu, footer { visibility: hidden; }
+header { visibility: visible; background: transparent !important; }
 
 .block-container { padding: 2rem 2.5rem 2rem 2.5rem !important; max-width: 900px !important; }
 
