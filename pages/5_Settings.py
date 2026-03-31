@@ -1,34 +1,12 @@
 import streamlit as st
 
-from utils.styles import inject_styles, require_login
 from utils.db_manager import get_categories, execute_query, clear_all_expenses
-from utils.auth import get_user_details
 
-st.set_page_config(page_title="Settings · SmartExpense", page_icon="⚙", layout="wide")
-inject_styles()
-require_login()
+# set_page_config, inject_styles, sidebar, and login guard are all handled by app.py
 
-# ── Sidebar logout ─────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown(
-        f"""
-        <div style="padding:20px 16px 12px;">
-          <p style="font-size:20px;font-weight:600;color:#e0e7ff;margin:0;">✨ SmartExpense</p>
-          <p style="font-size:12px;color:#64748b;margin:4px 0 0;">{get_user_details(st.session_state['username'])}</p>
-        </div>
-        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0 16px 12px;">
-        """,
-        unsafe_allow_html=True,
-    )
-    if st.button("↩  Log Out", key="logout_sidebar"):
-        st.session_state["logged_in"] = False
-        st.session_state["username"]  = None
-        st.switch_page("app.py")
-
-# ── Page content ───────────────────────────────────────────────────
 st.title("Settings")
 
-# Category budgets ──────────────────────────────────────────────────
+# ── Category budgets ───────────────────────────────────────────────
 st.markdown('<p class="section-head">Category budgets</p>', unsafe_allow_html=True)
 categories = get_categories()
 with st.form("budget_form"):
@@ -48,7 +26,7 @@ with st.form("budget_form"):
         st.success("Budget limits updated!")
         st.rerun()
 
-# Add new category ──────────────────────────────────────────────────
+# ── Add new category ───────────────────────────────────────────────
 st.markdown('<p class="section-head">Add new category</p>', unsafe_allow_html=True)
 with st.form("add_category_form", clear_on_submit=True):
     c1, c2 = st.columns(2)
@@ -65,7 +43,7 @@ with st.form("add_category_form", clear_on_submit=True):
         else:
             st.warning("Please enter a category name.")
 
-# Danger zone ───────────────────────────────────────────────────────
+# ── Danger zone ────────────────────────────────────────────────────
 st.markdown('<p class="section-head" style="color:#f87171;">Danger zone</p>', unsafe_allow_html=True)
 st.markdown(
     '<div class="settings-card">'
@@ -82,10 +60,3 @@ if st.button("Clear All Data", key="clear_data"):
         st.rerun()
     else:
         st.error("Please type DELETE exactly to confirm.")
-
-# Account ───────────────────────────────────────────────────────────
-st.markdown('<p class="section-head">Account</p>', unsafe_allow_html=True)
-if st.button("↩  Log Out", key="logout_settings"):
-    st.session_state["logged_in"] = False
-    st.session_state["username"]  = None
-    st.switch_page("app.py")

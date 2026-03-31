@@ -1,33 +1,11 @@
 import streamlit as st
 import pandas as pd
 
-from utils.styles import inject_styles, require_login
 from utils.db_manager import get_categories, add_expense
 from utils.pdf_processor import parse_bank_statement
-from utils.auth import get_user_details
 
-st.set_page_config(page_title="Smart Upload · SmartExpense", page_icon="⊜", layout="wide")
-inject_styles()
-require_login()
+# set_page_config, inject_styles, sidebar, and login guard are all handled by app.py
 
-# ── Sidebar logout ─────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown(
-        f"""
-        <div style="padding:20px 16px 12px;">
-          <p style="font-size:20px;font-weight:600;color:#e0e7ff;margin:0;">✨ SmartExpense</p>
-          <p style="font-size:12px;color:#64748b;margin:4px 0 0;">{get_user_details(st.session_state['username'])}</p>
-        </div>
-        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0 16px 12px;">
-        """,
-        unsafe_allow_html=True,
-    )
-    if st.button("↩  Log Out", key="logout_sidebar"):
-        st.session_state["logged_in"] = False
-        st.session_state["username"]  = None
-        st.switch_page("app.py")
-
-# ── Page content ───────────────────────────────────────────────────
 st.title("Smart Upload")
 st.write("Upload a bank statement PDF to auto-extract expenses.")
 
