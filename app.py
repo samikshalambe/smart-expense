@@ -38,7 +38,7 @@ if st.session_state["logged_in"]:
         st.Page("pages/1_Dashboard.py",   title="Dashboard",     icon="📊"),
         st.Page("pages/2_Add_Expense.py", title="Add Expense",   icon="➕"),
         st.Page("pages/3_Smart_Upload.py",title="Smart Upload",  icon="📄"),
-        st.Page("pages/4_Split_Settle.py",title="Split & Settle",icon="💸"),
+        st.Page("pages/4_Split_Settle.py",title="Split & Settle",icon="💰"),
         st.Page("pages/5_Settings.py",    title="Settings",      icon="🔧"),
     ])
 else:
