@@ -13,7 +13,7 @@ st.set_page_config(
     page_title="SmartExpense",
     layout="wide",
     page_icon="💰",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 st.markdown("""
@@ -23,9 +23,9 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Outfit', sans-serif; }
     .stApp { background: radial-gradient(circle at top left, #1e1b4b, #0f172a 40%, #020617); }
     #MainMenu, footer, header { visibility: hidden; }
-    [data-testid="stSidebar"] { display: none !important; }
-    [data-testid="collapsedControl"] { display: none !important; }
-    .block-container { padding: 1.5rem 2rem 2rem 2rem !important; max-width: 900px !important; }
+
+    /* ── DESKTOP: sidebar visible, no bottom nav, normal padding ── */
+    .block-container { padding: 2rem 2.5rem 2rem 2.5rem !important; max-width: 900px !important; }
 
     h1, h2, h3 {
         background: linear-gradient(to right, #e0e7ff, #818cf8);
@@ -85,12 +85,65 @@ st.markdown("""
         border-left: 4px solid #6366f1;
     }
 
-    .stTabs [data-baseweb="tab-list"] {
-        background: rgba(30, 41, 59, 0.3);
+    /* ── DESKTOP SIDEBAR ── */
+    [data-testid="stSidebar"] {
+        background: rgba(10, 15, 30, 0.98) !important;
+        border-right: 1px solid rgba(255,255,255,0.06) !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stRadio"] > label { display: none !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] > div { display: flex !important; flex-direction: column !important; gap: 2px !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label { display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 16px !important; border-radius: 10px !important; cursor: pointer !important; transition: background 0.15s !important; border-left: 3px solid transparent !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background: rgba(99,102,241,0.1) !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) { background: rgba(99,102,241,0.18) !important; border-left: 3px solid #818cf8 !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] input[type="radio"] { display: none !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label > div > p { font-size: 14px !important; color: #94a3b8 !important; margin: 0 !important; }
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) > div > p { color: #e0e7ff !important; font-weight: 500 !important; }
+
+    /* ── BOTTOM NAV (mobile only, hidden on desktop) ── */
+    .bottom-nav {
+        display: none;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: rgba(10, 15, 30, 0.98);
+        border-top: 1px solid rgba(255,255,255,0.08);
+        z-index: 9999;
+        padding: 8px 0 14px;
+    }
+    .bottom-nav-inner {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+    .nav-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 4px 10px;
         border-radius: 10px;
-        padding: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        border: none;
+        background: transparent;
+        transition: background 0.15s;
+    }
+    .nav-tab:hover { background: rgba(99,102,241,0.1); }
+    .nav-tab.active svg stroke { stroke: #818cf8 !important; }
+    .nav-tab.active .nav-label { color: #818cf8 !important; }
+    .nav-label { font-size: 10px; color: #64748b; font-family: 'Outfit', sans-serif; }
+    .nav-label.active { color: #818cf8; }
+
+    /* ── MOBILE: show bottom nav, hide sidebar, adjust padding ── */
+    @media (max-width: 768px) {
+        .bottom-nav { display: block !important; }
+        [data-testid="stSidebar"] { display: none !important; }
+        [data-testid="collapsedControl"] { display: none !important; }
+        .block-container { padding: 1rem 1rem 7rem 1rem !important; }
     }
 
+    /* ── Page card styles ── */
     .hero-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.07); border-radius: 18px; padding: 20px; margin-bottom: 12px; }
     .hero-label  { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:0.07em; margin:0 0 4px; }
     .hero-amount { font-size:36px; font-weight:600; color:#f8fafc; margin:0 0 14px; }
@@ -115,7 +168,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── SESSION STATE ───────────────────────────────────────────────
-for key, default in [("logged_in", False), ("username", None)]:
+for key, default in [("logged_in", False), ("username", None), ("page", "Dashboard")]:
     if key not in st.session_state:
         st.session_state[key] = default
 
@@ -126,9 +179,7 @@ if not st.session_state["logged_in"]:
     with col:
         st.markdown("<h1 style='text-align:center;font-size:2.5rem;'>✨ SmartExpense</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align:center;color:#94a3b8;margin-bottom:20px;'>Your smart household finance manager</p>", unsafe_allow_html=True)
-
         tab_login, tab_register = st.tabs(["Login", "Register"])
-
         with tab_login:
             with st.form("login_form"):
                 user = st.text_input("Username")
@@ -140,7 +191,6 @@ if not st.session_state["logged_in"]:
                         st.rerun()
                     else:
                         st.error("Invalid username or password.")
-
         with tab_register:
             with st.form("register_form"):
                 new_name = st.text_input("Full Name")
@@ -160,77 +210,106 @@ if not st.session_state["logged_in"]:
                         st.error("Username already taken — please choose another.")
     st.stop()
 
-# ── NAVIGATION BAR ──────────────────────────────────────────────
-try:
-    from streamlit_navigation_bar import st_navbar
-    page = st_navbar(
-        ["Dashboard", "Add", "Upload", "Split", "Settings", "Log Out"],
-        styles={
-            "nav": {
-                "background-color": "rgba(10, 15, 30, 0.97)",
-                "border-bottom": "1px solid rgba(255,255,255,0.08)",
-                "font-family": "Outfit, sans-serif",
-            },
-            "div": {"max-width": "900px"},
-            "span": {
-                "color": "#94a3b8",
-                "font-size": "14px",
-                "font-weight": "400",
-                "padding": "0 8px",
-            },
-            "active": {
-                "color": "#e0e7ff",
-                "font-weight": "600",
-                "border-bottom": "3px solid #818cf8",
-                "padding-bottom": "4px",
-            },
-            "hover": {"color": "#e0e7ff"},
-        },
-        options={"show_menu": False, "show_sidebar": False},
-    )
-    if page == "Log Out":
+# ── NAV PAGES ──────────────────────────────────────────────────
+PAGES     = ["Dashboard", "Add Expense", "Smart Upload", "Split & Settle", "Settings"]
+NAV_LABELS = ["Dashboard", "Add", "Upload", "Split", "Settings"]
+NAV_ICONS = {
+    "Dashboard":   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    "Add Expense": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>',
+    "Smart Upload": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>',
+    "Split & Settle": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12"/><path d="M6 8h8a4 4 0 0 1 0 8H6l5 5"/><path d="M6 16h2"/></svg>',
+    "Settings":    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+}
+
+# ── DESKTOP SIDEBAR ─────────────────────────────────────────────
+with st.sidebar:
+    st.markdown(f"""
+    <div style="padding:20px 16px 12px;">
+      <p style="font-size:20px;font-weight:600;color:#e0e7ff;margin:0;">✨ SmartExpense</p>
+      <p style="font-size:12px;color:#64748b;margin:4px 0 0;">{get_user_details(st.session_state['username'])}</p>
+    </div>
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0 16px 12px;">
+    """, unsafe_allow_html=True)
+
+    sidebar_labels = [f"{NAV_LABELS[i]}  {PAGES[i]}" if NAV_LABELS[i] != PAGES[i] else PAGES[i] for i in range(len(PAGES))]
+    sidebar_options = [
+        "⊞  Dashboard",
+        "⊕  Add Expense",
+        "⊜  Smart Upload",
+        "₹  Split & Settle",
+        "⚙  Settings",
+    ]
+    selected = st.radio("nav", sidebar_options, label_visibility="hidden",
+                        index=PAGES.index(st.session_state["page"]))
+    page = PAGES[sidebar_options.index(selected)]
+    st.session_state["page"] = page
+
+    st.markdown("<div style='margin-top:24px;'>", unsafe_allow_html=True)
+    if st.button("↩  Log Out", key="logout_sidebar"):
         st.session_state["logged_in"] = False
         st.session_state["username"]  = None
         st.rerun()
-    page_map = {
-        "Dashboard": "Dashboard",
-        "Add":       "Add Expense",
-        "Upload":    "Smart Upload",
-        "Split":     "Split & Settle",
-        "Settings":  "Settings",
-    }
-    page = page_map.get(page, "Dashboard")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-except ImportError:
-    # Fallback if package not installed — use styled radio
-    NAV_OPTIONS = ["⊞ Dashboard", "⊕ Add", "⊜ Upload", "₹ Split", "⚙ Settings"]
-    NAV_KEYS    = ["Dashboard", "Add Expense", "Smart Upload", "Split & Settle", "Settings"]
-    st.markdown("""
-    <style>
-    div[data-testid="stRadio"] {
-        background: rgba(10,15,30,0.97) !important;
-        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
-        padding: 8px 0 !important;
-        margin: -1.5rem -2rem 1.5rem -2rem !important;
-    }
-    div[data-testid="stRadio"] > label { display: none !important; }
-    div[data-testid="stRadio"] > div { display: flex !important; flex-direction: row !important; justify-content: space-around !important; max-width: 900px !important; margin: 0 auto !important; }
-    div[data-testid="stRadio"] label { display: flex !important; align-items: center !important; padding: 8px 14px !important; border-radius: 8px !important; cursor: pointer !important; border-bottom: 3px solid transparent !important; }
-    div[data-testid="stRadio"] label:has(input:checked) { border-bottom: 3px solid #818cf8 !important; }
-    div[data-testid="stRadio"] input[type="radio"] { display: none !important; }
-    div[data-testid="stRadio"] label > div > p { font-size: 13px !important; color: #94a3b8 !important; margin: 0 !important; }
-    div[data-testid="stRadio"] label:has(input:checked) > div > p { color: #e0e7ff !important; font-weight: 600 !important; }
-    </style>
-    """, unsafe_allow_html=True)
-    col_nav, col_out = st.columns([8, 1])
-    with col_nav:
-        sel = st.radio("nav", NAV_OPTIONS, horizontal=True, label_visibility="hidden")
-        page = NAV_KEYS[NAV_OPTIONS.index(sel)]
-    with col_out:
-        if st.button("↩", help="Log out", key="logout"):
-            st.session_state["logged_in"] = False
-            st.session_state["username"]  = None
+# ── MOBILE BOTTOM NAV (HTML — visual only) ──────────────────────
+# Functional nav buttons are hidden st.columns below
+current_page = st.session_state["page"]
+tabs_html = ""
+for p in PAGES:
+    active = "active" if p == current_page else ""
+    icon_color = "#818cf8" if p == current_page else "#64748b"
+    icon_svg = NAV_ICONS[p].replace('stroke="currentColor"', f'stroke="{icon_color}"')
+    label = NAV_LABELS[PAGES.index(p)]
+    tabs_html += f"""
+    <div class="nav-tab {active}">
+      {icon_svg}
+      <span class="nav-label {active}">{label}</span>
+    </div>"""
+
+st.markdown(f"""
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">{tabs_html}</div>
+</div>
+""", unsafe_allow_html=True)
+
+# Invisible functional buttons on top of visual nav (mobile only)
+# These drive actual Streamlit reruns
+st.markdown("""
+<style>
+.mobile-nav-btns { display:none; }
+@media (max-width: 768px) {
+  .mobile-nav-btns {
+    display: flex !important;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 10000;
+    height: 64px;
+  }
+  .mobile-nav-btns > div { flex: 1; }
+  .mobile-nav-btns .stButton > button {
+    height: 64px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    opacity: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+}
+</style>
+<div class="mobile-nav-btns">
+""", unsafe_allow_html=True)
+
+mob_cols = st.columns(5)
+for i, p in enumerate(PAGES):
+    with mob_cols[i]:
+        if st.button(NAV_LABELS[i], key=f"mob_{i}"):
+            st.session_state["page"] = p
             st.rerun()
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+page = st.session_state["page"]
 
 # ── DASHBOARD ───────────────────────────────────────────────────
 if page == "Dashboard":
@@ -304,7 +383,7 @@ if page == "Dashboard":
                                showlegend=True, legend=dict(font=dict(color="#94a3b8")))
             st.plotly_chart(fig2, use_container_width=True)
     else:
-        st.info("No expenses yet. Add one using the nav above or upload a PDF statement.")
+        st.info("No expenses yet. Add one via the nav or upload a PDF statement.")
 
     recent = execute_query(
         "SELECT date, category, amount, description FROM expenses ORDER BY date DESC LIMIT 8",
@@ -385,20 +464,17 @@ elif page == "Smart Upload":
 
         st.subheader(f"Preview — {len(df_extracted)} transactions found")
         st.write("Review and edit categories, then save.")
-
         save_clicked = st.button("✅ Save All to Database", use_container_width=True)
 
         edited_df = st.data_editor(
-            df_extracted,
-            num_rows="dynamic",
+            df_extracted, num_rows="dynamic",
             column_config={
                 "category":    st.column_config.SelectboxColumn("Category", options=cat_names, required=True),
                 "amount":      st.column_config.NumberColumn("Amount (₹)", format="₹%.2f"),
                 "date":        st.column_config.TextColumn("Date"),
                 "description": st.column_config.TextColumn("Description"),
             },
-            hide_index=True,
-            use_container_width=True
+            hide_index=True, use_container_width=True
         )
 
         if save_clicked:
@@ -496,3 +572,9 @@ elif page == "Settings":
             st.rerun()
         else:
             st.error("Please type DELETE exactly to confirm.")
+
+    st.markdown('<p class="section-head">Account</p>', unsafe_allow_html=True)
+    if st.button("↩  Log Out", key="logout_settings"):
+        st.session_state["logged_in"] = False
+        st.session_state["username"]  = None
+        st.rerun()
