@@ -1,161 +1,184 @@
+"""Dashboard — modern gradient layout with stats, chart, and transactions."""
 import streamlit as st
+import plotly.graph_objects as go
 import pandas as pd
-import plotly.express as px
 from datetime import datetime
 
 from utils.db_manager import execute_query
 from utils.forecaster import get_budget_status
 from utils.auth import get_user_details
-from utils.report_gen import generate_pdf_report
 
-# set_page_config, inject_styles, sidebar, and login guard are all handled by app.py
+st.markdown("""
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        padding: 24px 32px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 15px rgba(59,130,246,0.2);
+    }
+    .dashboard-header h1 {
+        color: white !important;
+        margin: 0 !important;
+        font-size: 32px !important;
+    }
+    .dashboard-header p {
+        color: rgba(255,255,255,0.9) !important;
+        margin: 8px 0 0 0 !important;
+        font-size: 14px !important;
+    }
+    .month-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        color: white;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# ── Greeting header ────────────────────────────────────────────────
-user_name = get_user_details(st.session_state["username"])
-hour      = datetime.now().hour
-greeting  = "Good morning" if hour < 12 else "Good afternoon" if hour < 18 else "Good evening"
+# ── Category palette ─────────────────────────────────────────────────
+CAT_COLOR = {
+    "Food": "#22c55e", "Groceries": "#22c55e",
+    "Utilities": "#3b82f6",
+    "Dining": "#a855f7",
+    "Transport": "#f59e0b",
+    "Rent": "#6366f1",
+    "Entertainment": "#ec4899",
+    "Other": "#6b7280",
+}
+CAT_EMOJI = {
+    "Food": "🟢", "Groceries": "🟢",
+    "Utilities": "🔵",
+    "Dining": "🟣",
+    "Transport": "🟡",
+    "Rent": "🔷",
+    "Entertainment": "🩷",
+    "Other": "⚫",
+}
 
-st.markdown(
-    f"""
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div>
-        <p style="font-size:22px;font-weight:600;color:#f1f5f9;margin:0;">{greeting}, {user_name} 👋</p>
-        <p style="font-size:13px;color:#64748b;margin:4px 0 0;">{datetime.now().strftime('%A, %d %B %Y')}</p>
-      </div>
-      <div style="width:42px;height:42px;border-radius:50%;background:rgba(99,102,241,0.2);
-                  display:flex;align-items:center;justify-content:center;
-                  font-size:15px;font-weight:600;color:#818cf8;">
-        {user_name[:2].upper()}
-      </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-# ── Budget hero card ───────────────────────────────────────────────
+# ── Data ─────────────────────────────────────────────────────────────
 status   = get_budget_status()
 budget   = status["total_budget"]
 current  = status["current_total"]
 forecast = status["predicted_total"]
-pct      = min(int((current / budget * 100) if budget > 0 else 0), 100)
-fill_cls = "progress-fill-warn" if status["is_over_budget"] else "progress-fill-ok"
+remaining = budget - current
 
-st.markdown(
-    f"""
-    <div class="hero-card">
-      <p class="hero-label">Total monthly budget</p>
-      <p class="hero-amount">₹{budget:,.0f}</p>
-      <div class="progress-track"><div class="{fill_cls}" style="width:{pct}%;"></div></div>
-      <div class="progress-meta"><span>₹{current:,.0f} spent</span><span>{pct}% used</span></div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+cat_rows = execute_query(
+    """SELECT category, SUM(amount) AS total
+       FROM expenses
+       WHERE MONTH(date)=MONTH(CURDATE()) AND YEAR(date)=YEAR(CURDATE())
+       GROUP BY category ORDER BY total DESC""",
+    fetch=True,
+) or []
 
+# ── Header with gradient ─────────────────────────────────────────────
+user_name = get_user_details(st.session_state["username"]) or "User"
+hour      = datetime.now().hour
+greeting  = "Good morning" if hour < 12 else ("Good afternoon" if hour < 17 else "Good evening")
+month_str = datetime.now().strftime("%B %Y")
+
+header_col1, header_col2 = st.columns([3, 1])
+with header_col1:
+    st.markdown(f'<div class="dashboard-header"><h1>{greeting}, {user_name}! 👋</h1><p>Let\'s review your finances</p></div>', unsafe_allow_html=True)
+with header_col2:
+    st.markdown(f'<div style="text-align: right; padding: 24px 0;"><span class="month-badge">{month_str}</span></div>', unsafe_allow_html=True)
+
+# ── Global alert banner ───────────────────────────────────────────────
 if status["is_over_budget"]:
     over = forecast - budget
-    st.markdown(
-        f'<div class="warn-strip">⚠ Forecast: you may exceed budget by ₹{over:,.0f} this month.</div>',
-        unsafe_allow_html=True,
+    st.error(f"📈 Month-end projection: **₹{forecast:,.0f}** — over budget by **₹{over:,.0f}**", icon="🚨")
+elif budget > 0 and forecast > budget * 0.85:
+    st.warning(
+        f"📊 Projected to spend **₹{forecast:,.0f}** — approaching your **₹{budget:,.0f}** budget.",
+        icon="⚠️",
     )
-else:
-    st.markdown('<div class="ok-strip">✓ Your spending is on track for this month.</div>', unsafe_allow_html=True)
 
-# ── Metrics ────────────────────────────────────────────────────────
+# ── Three stat pills ─────────────────────────────────────────────────
+st.write("")
 c1, c2, c3 = st.columns(3)
-with c1: st.metric("Current Spending",   f"₹{current:,.0f}")
-with c2: st.metric("Month-end Forecast", f"₹{forecast:,.0f}")
-with c3: st.metric("Remaining Budget",   f"₹{max(budget - current, 0):,.0f}")
+pct = int(current / budget * 100) if budget > 0 else 0
 
-# ── Charts ─────────────────────────────────────────────────────────
-cat_data = execute_query("SELECT category, amount FROM expenses", fetch=True)
-if cat_data:
-    df_exp = pd.DataFrame(cat_data)
-    df_exp["amount"] = df_exp["amount"].astype(float)
-    totals = df_exp.groupby("category")["amount"].sum().reset_index()
-    totals = totals.sort_values("amount", ascending=True)
+with c1:
+    st.metric("💸 Spent", f"₹{current:,.0f}", f"{pct}% of budget")
+with c2:
+    st.metric("💰 Budget", f"₹{budget:,.0f}")
+with c3:
+    delta_str = f"₹{abs(remaining):,.0f} {'over' if remaining < 0 else 'left'}"
+    st.metric("🎯 Remaining", f"₹{remaining:,.0f}", delta=delta_str,
+              delta_color="inverse" if remaining < 0 else "normal")
 
-    col_l, col_r = st.columns(2)
-    with col_l:
-        st.markdown('<p class="section-head">Spending by category</p>', unsafe_allow_html=True)
-        fig = px.bar(
-            totals, x="amount", y="category", orientation="h",
-            labels={"amount": "", "category": ""},
-            color="amount", color_continuous_scale="Purples",
-        )
-        fig.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#94a3b8", coloraxis_showscale=False,
-            margin=dict(l=0, r=0, t=0, b=0), height=240,
-        )
-        st.plotly_chart(fig, use_container_width=True)
+st.divider()
 
-    with col_r:
-        st.markdown('<p class="section-head">Category share</p>', unsafe_allow_html=True)
-        fig2 = px.pie(
-            totals, values="amount", names="category", hole=0.4,
-            color_discrete_sequence=px.colors.qualitative.Pastel,
-        )
-        fig2.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", font_color="#94a3b8",
-            margin=dict(l=0, r=0, t=0, b=0), height=240,
-            showlegend=True, legend=dict(font=dict(color="#94a3b8")),
-        )
-        st.plotly_chart(fig2, use_container_width=True)
+# ── Donut + Legend ────────────────────────────────────────────────────
+if cat_rows:
+    labels = [r["category"] for r in cat_rows]
+    values = [float(r["total"]) for r in cat_rows]
+    colors = [CAT_COLOR.get(l, "#6b7280") for l in labels]
+
+    # Build donut
+    fig = go.Figure(data=[go.Pie(
+        labels=labels, values=values,
+        hole=0.64,
+        marker=dict(colors=colors, line=dict(color="rgba(0,0,0,0.15)", width=2)),
+        textinfo="none",
+        hovertemplate="%{label}: ₹%{value:,.0f}<extra></extra>",
+        sort=False,
+    )])
+    fig.add_annotation(
+        text=f"<b>{pct}%</b>",
+        x=0.5, y=0.5, showarrow=False,
+        font=dict(size=24, color="#e2e8f0"),
+    )
+    fig.update_layout(
+        showlegend=False,
+        margin=dict(l=0, r=0, t=8, b=8),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=210,
+    )
+
+    st.markdown("**📊 Spending by Category**")
+    col_donut, col_legend = st.columns([1, 1.6])
+    with col_donut:
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+    with col_legend:
+        st.write("")
+        st.write("")
+        for label, value in zip(labels, values):
+            emoji = CAT_EMOJI.get(label, "⚫")
+            kk = value / 1000
+            la, lb = st.columns([3, 2])
+            with la:
+                st.write(f"{emoji}  {label}")
+            with lb:
+                st.write(f"₹{kk:.1f}k")
+
 else:
-    st.info("No expenses yet. Add one via the sidebar or upload a PDF statement.")
+    st.info("📌 No expenses recorded this month. Use **Add Expense** or **Smart Upload** to get started.", icon="💡")
 
-# ── Recent transactions ────────────────────────────────────────────
+st.divider()
+
+# ── Recent Transactions ───────────────────────────────────────────────
+st.markdown("**📝 Recent Transactions**")
+
 recent = execute_query(
-    "SELECT date, category, amount, description FROM expenses ORDER BY date DESC LIMIT 8",
+    "SELECT date, category, description, amount FROM expenses "
+    "ORDER BY date DESC LIMIT 10",
     fetch=True,
-)
+) or []
+
 if recent:
-    dot_colors = {
-        "Food": "#22c55e", "Rent": "#818cf8", "Utilities": "#f59e0b",
-        "Transport": "#f97316", "Entertainment": "#ec4899", "Other": "#64748b",
-    }
-    st.markdown('<p class="section-head">Recent transactions</p>', unsafe_allow_html=True)
-    rows_html = ""
-    for r in recent:
-        color    = dot_colors.get(r["category"], "#64748b")
-        date_str = r["date"].strftime("%d %b") if hasattr(r["date"], "strftime") else str(r["date"])
-        desc     = str(r["description"] or r["category"])[:30]
-        rows_html += f"""
-        <div class="txn-row">
-          <div class="txn-dot" style="background:{color};"></div>
-          <div style="flex:1;">
-            <div class="txn-name">{desc}</div>
-            <div class="txn-meta">{date_str} · {r['category']}</div>
-          </div>
-          <span class="txn-amt">-₹{float(r['amount']):,.0f}</span>
-        </div>"""
-    st.markdown(f'<div class="txn-card">{rows_html}</div>', unsafe_allow_html=True)
-
-# ── PDF report export ──────────────────────────────────────────────
-st.markdown('<p class="section-head">Export report</p>', unsafe_allow_html=True)
-cm, cy, cg = st.columns([2, 2, 3])
-with cm:
-    report_month = st.selectbox(
-        "Month", range(1, 13), index=datetime.now().month - 1,
-        format_func=lambda x: datetime(2024, x, 1).strftime("%B"),
-    )
-with cy:
-    report_year = st.selectbox(
-        "Year", range(2023, datetime.now().year + 1),
-        index=datetime.now().year - 2023,
-    )
-with cg:
-    st.write(" ")
-    if st.button("Generate PDF Report"):
-        with st.spinner("Generating..."):
-            st.session_state["current_report"]  = generate_pdf_report(report_month, report_year)
-            st.session_state["report_filename"] = f"Expense_Report_{report_month}_{report_year}.pdf"
-
-if "current_report" in st.session_state:
-    st.download_button(
-        "⬇ Download Report",
-        data=st.session_state["current_report"],
-        file_name=st.session_state["report_filename"],
-        mime="application/pdf",
-    )
+    df = pd.DataFrame(recent)
+    df["amount"]   = df["amount"].astype(float).map(lambda x: f"₹{x:,.0f}")
+    df["date"]     = pd.to_datetime(df["date"]).dt.strftime("%d %b %Y")
+    df["description"] = df["description"].fillna("—")
+    df = df.rename(columns={
+        "date": "Date", "category": "Category",
+        "description": "Description", "amount": "Amount",
+    })
+    st.dataframe(df, hide_index=True, use_container_width=True)
+else:
+    st.caption("✨ No transactions yet.")

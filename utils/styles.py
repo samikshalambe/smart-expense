@@ -1,200 +1,231 @@
-"""Shared CSS — dark and light themes, injected on every page via inject_styles()."""
+"""Modern gradient UI with minimal, clean design."""
 import streamlit as st
 
-# ── Theme-agnostic base ───────────────────────────────────────────────────────
-BASE_CSS = """
+_CSS = """
 <style>
-/* Offline font stack — no CDN */
-html, body, [class*="css"] {
-    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system,
-                 BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+/* ── Root & Background ── */
+html, body, [data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
+    min-height: 100vh;
 }
 
-/* Keep header visible — contains the mobile hamburger ☰ button */
-#MainMenu, footer { visibility: hidden; }
-header { visibility: visible; background: transparent !important; }
+/* ── Sidebar with gradient ── */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+    border-right: 1px solid rgba(148,163,184,0.1) !important;
+}
+[data-testid="stSidebarContent"] { 
+    padding: 1.5rem 0.8rem;
+}
 
-.block-container { padding: 2rem 2.5rem 2rem 2.5rem !important; max-width: 900px !important; }
+/* ── Main content ── */
+.main { background: transparent !important; }
 
-/* Buttons — same indigo gradient on both themes */
+/* ── Headers ── */
+h1, h2, h3 { 
+    color: #f1f5f9 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em;
+}
+
+/* ── Body text ── */
+body, p, span { color: #cbd5e1 !important; }
+
+/* ── Metric cards with gradient ── */
+[data-testid="stMetric"] {
+    background: linear-gradient(135deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.6) 100%) !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(148,163,184,0.15) !important;
+    padding: 20px 24px !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+    transition: all 0.3s ease !important;
+}
+[data-testid="stMetric"]:hover {
+    border-color: rgba(148,163,184,0.3) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4) !important;
+}
+[data-testid="stMetricLabel"] { 
+    font-size: 12px !important; 
+    color: #94a3b8 !important; 
+    text-transform: uppercase; 
+    letter-spacing: 0.1em;
+    font-weight: 600;
+}
+[data-testid="stMetricValue"] { 
+    font-size: 32px !important; 
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ── Form styling ── */
+[data-testid="stForm"] {
+    background: linear-gradient(135deg, rgba(30,41,59,0.7) 0%, rgba(15,23,42,0.5) 100%) !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(148,163,184,0.12) !important;
+    padding: 28px 32px !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2) !important;
+}
+
+/* ── Input fields ── */
+.stTextInput input, .stNumberInput input, .stDateInput input, 
+.stSelectbox select, .stTextArea textarea {
+    background: rgba(15,23,42,0.6) !important;
+    border: 1.5px solid rgba(148,163,184,0.15) !important;
+    border-radius: 10px !important;
+    color: #f1f5f9 !important;
+    padding: 10px 14px !important;
+    transition: all 0.3s ease !important;
+}
+.stTextInput input:focus, .stNumberInput input:focus, .stDateInput input:focus,
+.stSelectbox select:focus, .stTextArea textarea:focus {
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 3px rgba(96,165,250,0.1) !important;
+}
+
+/* ── Buttons ── */
 .stButton > button {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-    color: white !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 10px 24px !important;
     border: none !important;
-    border-radius: 12px;
-    font-weight: 500;
-    width: 100%;
-    padding: 0.6rem 1rem;
-    transition: opacity 0.15s;
+    transition: all 0.3s ease !important;
+    text-transform: none;
 }
-.stButton > button:hover {
-    background: linear-gradient(135deg, #4f46e5, #4338ca) !important;
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%) !important;
     color: white !important;
+    box-shadow: 0 4px 15px rgba(59,130,246,0.3) !important;
 }
-.stButton > button:disabled {
-    opacity: 0.5 !important;
-    cursor: default !important;
+.stButton > button[kind="primary"]:hover {
+    box-shadow: 0 8px 25px rgba(59,130,246,0.4) !important;
+    transform: translateY(-2px);
+}
+.stButton > button:hover { 
+    opacity: 1 !important;
+    transform: translateY(-2px);
 }
 
-/* Shared structural helpers */
-.progress-track  { height:6px; border-radius:99px; overflow:hidden; margin-bottom:8px; }
-.progress-fill-ok   { height:100%; border-radius:99px; background:#22c55e; }
-.progress-fill-warn { height:100%; border-radius:99px; background:#ef4444; }
-.progress-meta   { display:flex; justify-content:space-between; font-size:11px; color:#64748b; }
-.txn-row  { display:flex; align-items:center; gap:10px; padding:10px 14px;
-            border-bottom:1px solid rgba(128,128,128,0.1); }
-.txn-row:last-child { border-bottom:none; }
-.txn-dot  { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.txn-name { font-size:13px; font-weight:500; flex:1; }
-.txn-meta { font-size:11px; color:#64748b; }
-.txn-amt  { font-size:13px; font-weight:500; color:#f87171; }
-.section-head { font-size:11px; font-weight:500; color:#64748b; text-transform:uppercase;
-                letter-spacing:0.07em; margin:16px 0 8px; }
-.hero-label  { font-size:11px; color:#64748b; text-transform:uppercase;
-               letter-spacing:0.07em; margin:0 0 4px; }
-.hero-amount { font-size:36px; font-weight:600; margin:0 0 14px; }
-.stAlert     { border-radius:12px; border:none; border-left:4px solid #6366f1; }
+/* ── Tabs ── */
+[data-baseweb="tab-list"] {
+    background: rgba(15,23,42,0.5) !important;
+    border-radius: 12px !important;
+    padding: 6px !important;
+    gap: 4px !important;
+    border-bottom: none !important;
+}
+[data-baseweb="tab"] {
+    border-radius: 8px !important;
+    border-bottom: none !important;
+    padding: 8px 18px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #94a3b8 !important;
+    transition: all 0.3s ease !important;
+}
+[aria-selected="true"] { 
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%) !important; 
+    color: white !important;
+    font-weight: 600;
+}
 
-/* Theme card preview boxes */
-.theme-card {
-    border-radius: 16px;
-    border: 2px solid transparent;
-    padding: 20px;
+/* ── File uploader ── */
+[data-testid="stFileUploadDropzone"] {
+    border: 2px dashed rgba(96,165,250,0.3) !important;
+    border-radius: 14px !important;
+    background: rgba(59,130,246,0.05) !important;
+    padding: 28px !important;
+    transition: all 0.3s ease !important;
+}
+[data-testid="stFileUploadDropzone"]:hover {
+    border-color: rgba(96,165,250,0.6) !important;
+    background: rgba(59,130,246,0.1) !important;
+}
+
+/* ── Dividers ── */
+hr { 
+    border-color: rgba(148,163,184,0.1) !important; 
+    margin: 1.5rem 0 !important;
+}
+
+/* ── Alert boxes ── */
+.stAlert { 
+    border-radius: 12px !important; 
+    border: 1px solid rgba(148,163,184,0.15) !important;
+    padding: 16px 20px !important;
+    backdrop-filter: blur(10px);
+}
+.st-alert > div { background: rgba(15,23,42,0.5) !important; }
+
+/* ── Page links (sidebar nav) ── */
+[data-testid="stPageLink"] a {
+    font-size: 14px !important;
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+    display: block !important;
+    transition: all 0.3s ease !important;
+    color: #cbd5e1 !important;
+}
+[data-testid="stPageLink"] a:hover { 
+    background: rgba(59,130,246,0.15) !important;
+    color: #60a5fa !important;
+    padding-left: 16px;
+}
+
+/* ── Dataframe ── */
+[data-testid="stDataFrame"] > div, [data-testid="stDataEditor"] > div {
+    border-radius: 12px !important;
+    border: 1px solid rgba(148,163,184,0.1) !important;
+    background: rgba(15,23,42,0.4) !important;
+}
+
+/* ── Containers ── */
+[data-testid="stVerticalBlock"] {
+    background: transparent !important;
+}
+
+/* ── Radio buttons (horizontal) ── */
+[data-testid="stHorizontalBlock"] [data-testid="stRadioGroup"] label {
+    background: rgba(30,41,59,0.6);
+    border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 20px;
+    padding: 6px 16px;
+    margin: 4px;
+    font-size: 13px;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    margin-bottom: 8px;
+    transition: all 0.3s;
+    color: #cbd5e1;
 }
-.theme-card.active { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
-</style>
-"""
+[data-testid="stHorizontalBlock"] [data-testid="stRadioGroup"] label:hover {
+    border-color: rgba(96,165,250,0.4);
+    background: rgba(59,130,246,0.1);
+}
 
-# ── Dark theme ────────────────────────────────────────────────────────────────
-DARK_CSS = """
-<style>
-.stApp { background: radial-gradient(circle at top left, #1e1b4b, #0f172a 40%, #020617); }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(15,23,42,0.4); border-radius: 10px; }
+::-webkit-scrollbar-thumb { 
+    background: rgba(96,165,250,0.4);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(96,165,250,0.6); }
 
-h1, h2, h3 {
-    background: linear-gradient(to right, #e0e7ff, #818cf8);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    font-weight: 700 !important;
-}
-.hero-amount { color: #f8fafc; }
-.txn-name    { color: #f1f5f9; }
+/* ── Caption ── */
+.stCaption { color: #94a3b8 !important; font-size: 13px !important; }
 
-[data-testid="metric-container"] {
-    background: rgba(30,41,59,0.7);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 14px; padding: 14px;
-}
-.stTextInput > div > div > input,
-.stNumberInput > div > div > input,
-.stSelectbox > div > div,
-.stDateInput > div > div > input {
-    background: rgba(30,41,59,0.5) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    border-radius: 10px !important; color: white !important;
-}
-[data-testid="stForm"] {
-    background: rgba(30,41,59,0.3);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px; padding: 20px;
-}
-[data-testid="stDataFrame"] > div {
-    background: rgba(30,41,59,0.4);
-    border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
-}
-.stAlert { background: rgba(30,41,59,0.5); }
-[data-testid="stSidebar"] {
-    background: rgba(10,15,30,0.98) !important;
-    border-right: 1px solid rgba(255,255,255,0.06) !important;
-}
-.hero-card { background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.07);
-             border-radius:18px; padding:20px; margin-bottom:12px; }
-.progress-track { background: rgba(255,255,255,0.08); }
-.warn-strip { background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.25);
-              border-radius:10px; padding:10px 14px; font-size:12px;
-              color:#fca5a5; margin-bottom:12px; line-height:1.5; }
-.ok-strip   { background:rgba(34,197,94,0.1);  border:1px solid rgba(34,197,94,0.2);
-              border-radius:10px; padding:10px 14px; font-size:12px;
-              color:#86efac; margin-bottom:12px; line-height:1.5; }
-.txn-card { background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.07);
-            border-radius:14px; overflow:hidden; margin-bottom:12px; }
-.settings-card  { background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.07);
-                  border-radius:14px; padding:16px; margin-bottom:10px; }
-.settings-label { font-size:13px; font-weight:500; color:#f1f5f9; margin:0 0 4px; }
-.settings-sub   { font-size:11px; color:#64748b; margin:0 0 10px; }
-.theme-card     { background: rgba(30,41,59,0.6); }
-</style>
-"""
-
-# ── Light theme ───────────────────────────────────────────────────────────────
-LIGHT_CSS = """
-<style>
-.stApp { background: linear-gradient(135deg, #eef2ff 0%, #fafafa 50%, #f0f9ff 100%); }
-
-h1, h2, h3 {
-    background: linear-gradient(to right, #4338ca, #6366f1);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    font-weight: 700 !important;
-}
-.hero-amount { color: #1e293b; }
-.txn-name    { color: #1e293b; }
-
-[data-testid="metric-container"] {
-    background: white;
-    border: 1px solid rgba(99,102,241,0.15);
-    border-radius: 14px; padding: 14px;
-    box-shadow: 0 2px 8px rgba(99,102,241,0.06);
-}
-.stTextInput > div > div > input,
-.stNumberInput > div > div > input,
-.stSelectbox > div > div,
-.stDateInput > div > div > input {
-    background: white !important;
-    border: 1px solid rgba(99,102,241,0.2) !important;
-    border-radius: 10px !important; color: #1e293b !important;
-}
-[data-testid="stForm"] {
-    background: white;
-    border: 1px solid rgba(99,102,241,0.12);
-    border-radius: 16px; padding: 20px;
-    box-shadow: 0 2px 12px rgba(99,102,241,0.06);
-}
-[data-testid="stDataFrame"] > div {
-    background: white; border-radius: 12px;
-    border: 1px solid rgba(99,102,241,0.1);
-}
-.stAlert { background: rgba(238,242,255,0.9); }
-[data-testid="stSidebar"] {
-    background: white !important;
-    border-right: 1px solid rgba(99,102,241,0.12) !important;
-    box-shadow: 2px 0 16px rgba(99,102,241,0.06) !important;
-}
-.hero-card { background:white; border:1px solid rgba(99,102,241,0.15);
-             border-radius:18px; padding:20px; margin-bottom:12px;
-             box-shadow: 0 4px 16px rgba(99,102,241,0.08); }
-.progress-track { background: rgba(99,102,241,0.1); }
-.warn-strip { background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.2);
-              border-radius:10px; padding:10px 14px; font-size:12px;
-              color:#b91c1c; margin-bottom:12px; line-height:1.5; }
-.ok-strip   { background:rgba(34,197,94,0.07); border:1px solid rgba(34,197,94,0.2);
-              border-radius:10px; padding:10px 14px; font-size:12px;
-              color:#15803d; margin-bottom:12px; line-height:1.5; }
-.txn-card { background:white; border:1px solid rgba(99,102,241,0.12);
-            border-radius:14px; overflow:hidden; margin-bottom:12px;
-            box-shadow: 0 2px 8px rgba(99,102,241,0.06); }
-.settings-card  { background:white; border:1px solid rgba(99,102,241,0.12);
-                  border-radius:14px; padding:16px; margin-bottom:10px; }
-.settings-label { font-size:13px; font-weight:500; color:#1e293b; margin:0 0 4px; }
-.settings-sub   { font-size:11px; color:#64748b; margin:0 0 10px; }
-.theme-card     { background: white; }
-.txn-amt        { color: #ef4444; }
+/* ── Success/Error/Warning ── */
+.stSuccess { border-left: 4px solid #34d399 !important; }
+.stError { border-left: 4px solid #f87171 !important; }
+.stWarning { border-left: 4px solid #fbbf24 !important; }
 </style>
 """
 
 
 def inject_styles():
-    """Inject base + the active theme CSS. Call at the top of every page."""
-    theme = st.session_state.get("theme", "dark")
-    st.markdown(BASE_CSS, unsafe_allow_html=True)
-    st.markdown(DARK_CSS if theme == "dark" else LIGHT_CSS, unsafe_allow_html=True)
+    st.markdown(_CSS, unsafe_allow_html=True)

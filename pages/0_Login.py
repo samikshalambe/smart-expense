@@ -1,49 +1,73 @@
 import streamlit as st
 from utils.auth import check_login, register_user
 
-# NOTE: set_page_config and inject_styles() are handled by app.py
+st.markdown("""
+<style>
+    .login-container {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .login-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 48px !important;
+        font-weight: 800 !important;
+        text-align: center;
+        margin-bottom: 8px;
+    }
+    .login-subtitle {
+        text-align: center;
+        color: #94a3b8 !important;
+        font-size: 16px !important;
+        margin-bottom: 32px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-st.markdown("<br><br>", unsafe_allow_html=True)
-_, col, _ = st.columns([1, 2, 1])
+st.markdown("<br>", unsafe_allow_html=True)
+
+_, col, _ = st.columns([1, 1.4, 1])
 with col:
-    st.markdown(
-        "<h1 style='text-align:center;font-size:2.5rem;'>✨ SmartExpense</h1>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        "<p style='text-align:center;color:#94a3b8;margin-bottom:20px;'>"
-        "Your smart household finance manager</p>",
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="login-header">💰 SmartExpense</div>', unsafe_allow_html=True)
+    st.markdown('<div class="login-subtitle">Smart household finance manager</div>', unsafe_allow_html=True)
+    st.write("")
 
-    tab_login, tab_register = st.tabs(["Login", "Register"])
+    tab_login, tab_reg = st.tabs(["🔑 Login", "✨ Register"])
 
     with tab_login:
         with st.form("login_form"):
-            user = st.text_input("Username")
-            pw   = st.text_input("Password", type="password")
-            if st.form_submit_button("Login", use_container_width=True):
+            user = st.text_input("Username", placeholder="your username")
+            pw   = st.text_input("Password", type="password", placeholder="••••••••")
+            st.write("")
+            if st.form_submit_button("🚀 Login", use_container_width=True, type="primary"):
                 if check_login(user, pw):
                     st.session_state["logged_in"] = True
                     st.session_state["username"]  = user
-                    st.rerun()   # app.py re-runs → sees logged_in=True → shows pages
+                    st.rerun()
                 else:
-                    st.error("Invalid username or password.")
+                    st.error("❌ Invalid credentials. Please try again.")
 
-    with tab_register:
-        with st.form("register_form"):
-            new_name = st.text_input("Full Name")
-            new_user = st.text_input("Username")
-            new_pw   = st.text_input("Password", type="password")
-            new_pw2  = st.text_input("Confirm Password", type="password")
-            if st.form_submit_button("Create Account", use_container_width=True):
-                if not new_name or not new_user or not new_pw:
-                    st.error("Please fill in all fields.")
-                elif new_pw != new_pw2:
-                    st.error("Passwords do not match.")
-                elif len(new_pw) < 6:
-                    st.error("Password must be at least 6 characters.")
-                elif register_user(new_user, new_pw, new_name):
-                    st.success("Account created! You can now log in.")
+    with tab_reg:
+        with st.form("reg_form"):
+            nm   = st.text_input("Full Name",        placeholder="Jane Doe")
+            ru   = st.text_input("Username",         placeholder="janedoe")
+            rp   = st.text_input("Password",         type="password", placeholder="min 6 chars")
+            rp2  = st.text_input("Confirm Password", type="password", placeholder="repeat")
+            st.write("")
+            if st.form_submit_button("✨ Create Account", use_container_width=True, type="primary"):
+                if not nm or not ru or not rp:
+                    st.error("❌ Fill in all fields.")
+                elif rp != rp2:
+                    st.error("❌ Passwords don't match.")
+                elif len(rp) < 6:
+                    st.error("❌ Password must be ≥ 6 chars.")
+                elif register_user(ru, rp, nm):
+                    st.success("Account created! Log in above.")
                 else:
-                    st.error("Username already taken — please choose another.")
+                    st.error("Username already taken.")
