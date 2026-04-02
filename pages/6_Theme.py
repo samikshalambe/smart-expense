@@ -1,4 +1,4 @@
-"""AI Forecast — modern spending forecast with charts and analytics."""
+"""Daily Spending — spending trends and forecasts."""
 import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
@@ -55,7 +55,7 @@ current = status["current_total"]
 forecast = status["predicted_total"]
 
 # ── Header row ────────────────────────────────────────────────────────
-st.markdown(f'<div class="form-header"><h2>📈 AI Forecast</h2><p>{now.strftime("%B %Y")}  ·  Day {today} of {days_in_month}</p></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="form-header"><h2>Daily Spending</h2><p>{now.strftime("%B %Y")}  ·  Day {today} of {days_in_month}</p></div>', unsafe_allow_html=True)
 st.write("")
 
 proj_color = "🔴" if forecast > budget else "🟢"

@@ -1,4 +1,4 @@
-"""PDF Report — modern monthly report generation and download."""
+"""PDF Report — monthly report generation and export."""
 import streamlit as st
 from datetime import datetime
 from utils.db_manager import execute_query
@@ -25,7 +25,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="form-header"><h2>📄 PDF Report</h2><p>Generate and download monthly expense reports</p></div>', unsafe_allow_html=True)
+st.markdown('<div class="form-header"><h2>PDF Report</h2><p>Generate and download monthly expense reports</p></div>', unsafe_allow_html=True)
 
 # ── Month chip selector (horizontal radio = pill chips) ───────────────
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",

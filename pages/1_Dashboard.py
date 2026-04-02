@@ -1,4 +1,4 @@
-"""Dashboard — modern gradient layout with stats, chart, and transactions."""
+"""Dashboard — display spending summary and analytics."""
 import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
@@ -48,15 +48,6 @@ CAT_COLOR = {
     "Entertainment": "#ec4899",
     "Other": "#6b7280",
 }
-CAT_EMOJI = {
-    "Food": "🟢", "Groceries": "🟢",
-    "Utilities": "🔵",
-    "Dining": "🟣",
-    "Transport": "🟡",
-    "Rent": "🔷",
-    "Entertainment": "🩷",
-    "Other": "⚫",
-}
 
 # ── Data ─────────────────────────────────────────────────────────────
 status   = get_budget_status()
@@ -75,24 +66,21 @@ cat_rows = execute_query(
 
 # ── Header with gradient ─────────────────────────────────────────────
 user_name = get_user_details(st.session_state["username"]) or "User"
-hour      = datetime.now().hour
-greeting  = "Good morning" if hour < 12 else ("Good afternoon" if hour < 17 else "Good evening")
 month_str = datetime.now().strftime("%B %Y")
 
 header_col1, header_col2 = st.columns([3, 1])
 with header_col1:
-    st.markdown(f'<div class="dashboard-header"><h1>{greeting}, {user_name}! 👋</h1><p>Let\'s review your finances</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="dashboard-header"><h1>Dashboard</h1><p>Your spending overview</p></div>', unsafe_allow_html=True)
 with header_col2:
     st.markdown(f'<div style="text-align: right; padding: 24px 0;"><span class="month-badge">{month_str}</span></div>', unsafe_allow_html=True)
 
 # ── Global alert banner ───────────────────────────────────────────────
 if status["is_over_budget"]:
     over = forecast - budget
-    st.error(f"📈 Month-end projection: **₹{forecast:,.0f}** — over budget by **₹{over:,.0f}**", icon="🚨")
+    st.error(f"Month-end projection: ₹{forecast:,.0f} — over budget by ₹{over:,.0f}")
 elif budget > 0 and forecast > budget * 0.85:
     st.warning(
-        f"📊 Projected to spend **₹{forecast:,.0f}** — approaching your **₹{budget:,.0f}** budget.",
-        icon="⚠️",
+        f"Projected to spend ₹{forecast:,.0f} — approaching your ₹{budget:,.0f} budget."
     )
 
 # ── Three stat pills ─────────────────────────────────────────────────
@@ -101,12 +89,12 @@ c1, c2, c3 = st.columns(3)
 pct = int(current / budget * 100) if budget > 0 else 0
 
 with c1:
-    st.metric("💸 Spent", f"₹{current:,.0f}", f"{pct}% of budget")
+    st.metric("Spent", f"₹{current:,.0f}", f"{pct}% of budget")
 with c2:
-    st.metric("💰 Budget", f"₹{budget:,.0f}")
+    st.metric("Budget", f"₹{budget:,.0f}")
 with c3:
     delta_str = f"₹{abs(remaining):,.0f} {'over' if remaining < 0 else 'left'}"
-    st.metric("🎯 Remaining", f"₹{remaining:,.0f}", delta=delta_str,
+    st.metric("Left", f"₹{remaining:,.0f}", delta=delta_str,
               delta_color="inverse" if remaining < 0 else "normal")
 
 st.divider()
@@ -139,7 +127,7 @@ if cat_rows:
         height=210,
     )
 
-    st.markdown("**📊 Spending by Category**")
+    st.markdown("**Spending by Category**")
     col_donut, col_legend = st.columns([1, 1.6])
     with col_donut:
         st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
@@ -148,21 +136,20 @@ if cat_rows:
         st.write("")
         st.write("")
         for label, value in zip(labels, values):
-            emoji = CAT_EMOJI.get(label, "⚫")
             kk = value / 1000
             la, lb = st.columns([3, 2])
             with la:
-                st.write(f"{emoji}  {label}")
+                st.write(f"{label}")
             with lb:
                 st.write(f"₹{kk:.1f}k")
 
 else:
-    st.info("📌 No expenses recorded this month. Use **Add Expense** or **Smart Upload** to get started.", icon="💡")
+    st.info("No expenses recorded this month. Use Add Expenses to get started.")
 
 st.divider()
 
 # ── Recent Transactions ───────────────────────────────────────────────
-st.markdown("**📝 Recent Transactions**")
+st.markdown("**Recent Transactions**")
 
 recent = execute_query(
     "SELECT date, category, description, amount FROM expenses "
@@ -181,4 +168,4 @@ if recent:
     })
     st.dataframe(df, hide_index=True, use_container_width=True)
 else:
-    st.caption("✨ No transactions yet.")
+    st.caption("No transactions yet.")

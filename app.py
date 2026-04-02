@@ -34,30 +34,29 @@ for k, v in [("logged_in", False), ("username", None)]:
         st.session_state[k] = v
 
 # ── Page registry ─────────────────────────────────────────────────────
-DASHBOARD    = st.Page("pages/1_Dashboard.py",    title="Dashboard",    icon="📊")
-ADD_EXPENSE  = st.Page("pages/2_Add_Expense.py",  title="Add Expense",  icon="➕")
-SMART_UPLOAD = st.Page("pages/3_Smart_Upload.py", title="Smart Upload", icon="📤")
-BILL_SPLIT   = st.Page("pages/4_Split_Settle.py", title="Bill Splitter",icon="👥")
-AI_FORECAST  = st.Page("pages/6_Theme.py",        title="AI Forecast",  icon="📈")
-PDF_REPORT   = st.Page("pages/7_PDF_Report.py",   title="PDF Report",   icon="📄")
-SETTINGS     = st.Page("pages/5_Settings.py",     title="Settings",     icon="⚙️")
+DASHBOARD    = st.Page("pages/1_Dashboard.py",    title="Dashboard")
+ADD_EXPENSE  = st.Page("pages/2_Add_Expense.py",  title="Add Expenses")
+BILL_SPLIT   = st.Page("pages/4_Split_Settle.py", title="Bill Splitter")
+AI_FORECAST  = st.Page("pages/6_Theme.py",        title="Daily Spending")
+PDF_REPORT   = st.Page("pages/7_PDF_Report.py",   title="PDF Report")
+SETTINGS     = st.Page("pages/5_Settings.py",     title="Settings")
 
-ALL_PAGES = [DASHBOARD, ADD_EXPENSE, SMART_UPLOAD, BILL_SPLIT,
+ALL_PAGES = [DASHBOARD, ADD_EXPENSE, BILL_SPLIT,
              AI_FORECAST, PDF_REPORT, SETTINGS]
 
 if st.session_state["logged_in"]:
     user = get_user_details(st.session_state["username"]) or "User"
 
     with st.sidebar:
-        st.markdown('<div class="sidebar-header"><h2>💰 SmartExpense</h2></div>', unsafe_allow_html=True)
-        st.caption(f"👋 **{user}**")
+        st.markdown('<div class="sidebar-header"><h2>SmartExpense</h2></div>', unsafe_allow_html=True)
+        st.caption(f"Signed in as **{user}**")
         st.divider()
 
         for page in ALL_PAGES:
             st.page_link(page)
 
         st.divider()
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("Logout", use_container_width=True):
             st.session_state["logged_in"] = False
             st.session_state["username"]  = None
             st.rerun()
@@ -65,6 +64,6 @@ if st.session_state["logged_in"]:
     pg = st.navigation(ALL_PAGES, position="hidden")
 
 else:
-    pg = st.navigation([st.Page("pages/0_Login.py", title="Login", icon="🔑")], position="hidden")
+    pg = st.navigation([st.Page("pages/0_Login.py", title="Login")], position="hidden")
 
 pg.run()

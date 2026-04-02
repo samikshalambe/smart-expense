@@ -1,4 +1,4 @@
-"""Bill Splitter — modern UI with bill splitting and UPI QR generation."""
+"""Bill Splitter — split bills and generate UPI payment links."""
 import streamlit as st
 from utils.upi_helper import generate_upi_qr
 
@@ -23,23 +23,23 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="form-header"><h2>👥 Bill Splitter</h2><p>Split bills instantly with UPI payment links</p></div>', unsafe_allow_html=True)
+st.markdown('<div class="form-header"><h2>Bill Splitter</h2><p>Split bills instantly with UPI payment links</p></div>', unsafe_allow_html=True)
 
 # ── Bill details ──────────────────────────────────────────────────────
 _, center, _ = st.columns([1, 2, 1])
 with center:
     total_amount = st.number_input(
-        "💵 Total Bill Amount (₹)",
+        "Total Bill Amount (₹)",
         min_value=0.0, max_value=1_000_000.0,
         step=10.0, format="%.2f",
         placeholder="2400.00",
     )
-    description = st.text_input("📝 Description", placeholder="e.g. Monthly Rent · April 2026")
-    upi_id      = st.text_input("🏦 Your UPI ID", placeholder="name@bank")
-    biller_name = st.text_input("👤 Your Name",   value="Biller")
+    description = st.text_input("Description", placeholder="e.g. Monthly Rent - April 2026")
+    upi_id      = st.text_input("Your UPI ID", placeholder="name@bank")
+    biller_name = st.text_input("Your Name",   value="Biller")
 
 st.write("")
-st.markdown("**👥 Split Between**")
+st.markdown("**Split Between**")
 
 # ── ± People counter ─────────────────────────────────────────────────
 if "num_people" not in st.session_state:
@@ -47,13 +47,13 @@ if "num_people" not in st.session_state:
 
 _, col_m, col_n, col_p, _ = st.columns([2, 1, 1, 1, 2])
 with col_m:
-    if st.button("  ➖  ", use_container_width=True, key="minus"):
+    if st.button("−", use_container_width=True, key="minus"):
         if st.session_state["num_people"] > 1:
             st.session_state["num_people"] -= 1
 with col_n:
     st.metric("People", st.session_state["num_people"])
 with col_p:
-    if st.button("  ➕  ", use_container_width=True, key="plus"):
+    if st.button("+", use_container_width=True, key="plus"):
         if st.session_state["num_people"] < 20:
             st.session_state["num_people"] += 1
 
@@ -67,7 +67,7 @@ if total_amount > 0:
 
     _, res_col, _ = st.columns([1, 2, 1])
     with res_col:
-        st.metric("💰 Per Person", f"₹{split:,.2f}",
+        st.metric("Per Person", f"₹{split:,.2f}",
                   f"{num_people} people · total ₹{total_amount:,.2f}")
 
     st.write("")
@@ -84,7 +84,7 @@ if total_amount > 0:
                 st.caption("Scan with any UPI app — PhonePe, GooglePay, Paytm")
                 st.caption(f"To: {biller_name}  ·  {upi_id}")
                 st.download_button(
-                    "📥 Download QR",
+                    "Download QR",
                     data=qr_bytes,
                     file_name="split_qr.png",
                     mime="image/png",
