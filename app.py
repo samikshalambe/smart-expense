@@ -65,9 +65,6 @@ if st.session_state["logged_in"]:
     pg = st.navigation(ALL_PAGES, position="hidden")
 
 else:
-    pg = st.navigation([st.Page("pages/0_Login.py", title="Login")])
-        [st.Page("pages/0_Login.py", title="Login", icon="🔑")],
-        position="hidden",
-    )
+    pg = st.navigation([st.Page("pages/0_Login.py", title="Login", icon="🔑")], position="hidden")
 
 pg.run()
