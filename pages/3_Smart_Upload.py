@@ -7,10 +7,11 @@ from utils.pdf_processor import parse_bank_statement
 st.markdown("""
 <style>
     .form-header {
-        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        background: linear-gradient(135deg, #b29fe8 0%, #a685d0 100%);
         padding: 20px 24px;
         border-radius: 12px;
         margin-bottom: 24px;
+        box-shadow: 0 4px 15px rgba(166, 108, 205, 0.2);
     }
     .form-header h2 {
         color: white !important;

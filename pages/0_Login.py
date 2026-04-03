@@ -4,15 +4,15 @@ from utils.auth import check_login, register_user
 st.markdown("""
 <style>
     .login-container {
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(248, 245, 252, 0.9) 100%);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(148, 163, 184, 0.15);
+        border: 1px solid rgba(171, 131, 201, 0.3);
         border-radius: 20px;
         padding: 40px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 32px rgba(166, 108, 205, 0.15);
     }
     .login-header {
-        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        background: linear-gradient(135deg, #b29fe8 0%, #a685d0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -23,7 +23,7 @@ st.markdown("""
     }
     .login-subtitle {
         text-align: center;
-        color: #94a3b8 !important;
+        color: #a685d0 !important;
         font-size: 16px !important;
         margin-bottom: 32px;
     }

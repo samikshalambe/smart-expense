@@ -11,15 +11,16 @@ st.set_page_config(
 
 inject_styles()
 
-# Custom sidebar header styling
+# Custom sidebar header styling - Light pastel purple theme
 st.markdown("""
 <style>
     .sidebar-header {
-        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        background: linear-gradient(135deg, #b29fe8 0%, #a685d0 100%);
         padding: 20px 16px;
         border-radius: 12px;
         margin-bottom: 20px;
         text-align: center;
+        box-shadow: 0 4px 15px rgba(166, 108, 205, 0.2);
     }
     .sidebar-header h2 {
         color: white !important;

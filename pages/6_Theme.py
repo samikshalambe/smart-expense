@@ -10,10 +10,11 @@ from utils.forecaster import get_budget_status
 st.markdown("""
 <style>
     .form-header {
-        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        background: linear-gradient(135deg, #b29fe8 0%, #a685d0 100%);
         padding: 20px 24px;
         border-radius: 12px;
         margin-bottom: 24px;
+        box-shadow: 0 4px 15px rgba(166, 108, 205, 0.2);
     }
     .form-header h2 {
         color: white !important;
@@ -125,62 +126,74 @@ if chosen_cat != "All":
     proj_vals  = [cur + daily_rate * (d - today) for d in proj_days]
 
 proj_over = bool(proj_vals) and proj_vals[-1] > budget
-proj_line_color = "#ef4444" if proj_over else "#4ade80"
+proj_line_color = "#ef4444" if proj_over else "#10b981"
 
 fig = go.Figure()
 
-# Actual line
+# Actual area with fill (smooth wavy effect)
 if cumulative:
     fig.add_trace(go.Scatter(
         x=actual_days, y=cumulative,
         mode="lines", name="Actual",
-        line=dict(color="#22c55e", width=2.5),
+        line=dict(color="#a685d0", width=3),
+        fill="tozeroy",
+        fillcolor="rgba(182, 159, 232, 0.3)",
+        hovertemplate="<b>Day %{x}</b><br>₹%{y:,.0f}<extra></extra>",
+        smooth=True,
     ))
 
-# Projected dashed
+# Projected area with dashed fill
 if len(proj_vals) > 1:
     fig.add_trace(go.Scatter(
         x=proj_days, y=proj_vals,
         mode="lines", name="Projected",
-        line=dict(color=proj_line_color, width=2, dash="dash"),
+        line=dict(color=proj_line_color, width=2.5, dash="dash"),
+        fill="tonexty" if cumulative else "tozeroy",
+        fillcolor=f"rgba({255 if proj_over else 16}, {180 if proj_over else 185}, {129 if not proj_over else 52}, 0.15)",
+        hovertemplate="<b>Day %{x}</b><br>₹%{y:,.0f}<extra></extra>",
+        smooth=True,
     ))
 
 # Budget limit horizontal
 if budget > 0:
     fig.add_hline(
         y=budget,
-        line_dash="dash", line_color="#ef4444", line_width=1.5,
-        annotation_text="limit", annotation_position="right",
-        annotation_font_color="#ef4444", annotation_font_size=11,
+        line_dash="dash", line_color="#a685d0", line_width=2,
+        annotation_text="Budget Limit", annotation_position="right",
+        annotation_font_color="#a685d0", annotation_font_size=12,
     )
 
 # Today marker
 fig.add_vline(
     x=today,
-    line_dash="dash", line_color="#94a3b8", line_width=1,
-    annotation_text="today", annotation_position="top left",
-    annotation_font_color="#94a3b8", annotation_font_size=11,
+    line_dash="dash", line_color="#a685d0", line_width=1.5, opacity=0.7,
+    annotation_text="Today", annotation_position="top",
+    annotation_font_color="#a685d0", annotation_font_size=11,
 )
 
 fig.update_layout(
-    paper_bgcolor="#1a1d2e",
-    plot_bgcolor="#1a1d2e",
-    font=dict(color="#e2e8f0", size=12),
-    height=360,
-    margin=dict(l=16, r=80, t=16, b=48),
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(248, 245, 252, 0.3)",
+    font=dict(color="#6b5b8a", size=12),
+    height=400,
+    margin=dict(l=16, r=100, t=16, b=48),
     xaxis=dict(
-        gridcolor="rgba(255,255,255,0.05)", zeroline=False,
-        range=[1, days_in_month], title=None,
+        gridcolor="rgba(182, 159, 232, 0.1)", zeroline=False,
+        range=[1, days_in_month], title="Day of Month",
         tickvals=list(range(1, days_in_month + 1, 5)),
+        tickcolor="#a685d0",
+        linecolor="#a685d0",
     ),
     yaxis=dict(
-        gridcolor="rgba(255,255,255,0.05)", zeroline=False,
-        title=None, tickprefix="₹",
+        gridcolor="rgba(182, 159, 232, 0.1)", zeroline=False,
+        title="Cumulative Spending (₹)", tickprefix="₹",
+        tickcolor="#a685d0",
+        linecolor="#a685d0",
     ),
     legend=dict(
-        orientation="h", y=-0.15,
+        orientation="h", y=1.12, x=0,
         bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#94a3b8"),
+        font=dict(color="#6b5b8a"),
     ),
     hovermode="x unified",
 )

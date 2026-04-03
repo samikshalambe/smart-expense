@@ -272,13 +272,14 @@ with trend_tab1:
         fig_daily.add_trace(go.Scatter(
             x=df_daily["day"],
             y=df_daily["total"],
-            mode="lines+markers",
+            mode="lines",
             name="Daily Spending",
             line=dict(color="#a685d0", width=3),
-            marker=dict(size=8, color="#a685d0"),
+            marker=dict(size=0),
             fill="tozeroy",
-            fillcolor="rgba(182, 159, 232, 0.2)",
+            fillcolor="rgba(182, 159, 232, 0.3)",
             hovertemplate="<b>%{x|%d %b}</b><br>₹%{y:,.0f}<extra></extra>",
+            smooth=True,
         ))
         fig_daily.update_layout(
             xaxis_title="Date",
@@ -289,6 +290,8 @@ with trend_tab1:
             height=360,
             margin=dict(l=0, r=0, t=0, b=0),
             font=dict(color="#6b5b8a"),
+            xaxis=dict(gridcolor="rgba(182, 159, 232, 0.1)"),
+            yaxis=dict(gridcolor="rgba(182, 159, 232, 0.1)"),
         )
         st.plotly_chart(fig_daily, use_container_width=True, config={"displayModeBar": False})
     else:
@@ -310,15 +313,17 @@ with trend_tab2:
         df_monthly["month_label"] = pd.to_datetime(df_monthly["month"]).dt.strftime("%b %Y")
         
         fig_monthly = go.Figure()
-        fig_monthly.add_trace(go.Bar(
+        fig_monthly.add_trace(go.Scatter(
             x=df_monthly["month_label"],
             y=df_monthly["total"],
+            mode="lines",
             name="Monthly Spending",
-            marker=dict(
-                color="#a685d0",
-                line=dict(color="rgba(171, 131, 201, 0.5)", width=1),
-            ),
+            line=dict(color="#a685d0", width=3),
+            marker=dict(size=0),
+            fill="tozeroy",
+            fillcolor="rgba(182, 159, 232, 0.3)",
             hovertemplate="<b>%{x}</b><br>₹%{y:,.0f}<extra></extra>",
+            smooth=True,
         ))
         fig_monthly.update_layout(
             xaxis_title="Month",
@@ -329,6 +334,8 @@ with trend_tab2:
             height=360,
             margin=dict(l=0, r=0, t=0, b=0),
             font=dict(color="#6b5b8a"),
+            xaxis=dict(gridcolor="rgba(182, 159, 232, 0.1)"),
+            yaxis=dict(gridcolor="rgba(182, 159, 232, 0.1)"),
         )
         st.plotly_chart(fig_monthly, use_container_width=True, config={"displayModeBar": False})
     else:
