@@ -4,6 +4,11 @@ import streamlit as st
 def get_connection():
     """Returns a connection to the MySQL database using streamlit secrets."""
     try:
+        # Check if secrets are available
+        if not hasattr(st, 'secrets') or "mysql" not in st.secrets:
+            print("Database secrets not configured")
+            return None
+
         conn = mysql.connector.connect(
             host=st.secrets["mysql"]["host"],
             user=st.secrets["mysql"]["user"],
