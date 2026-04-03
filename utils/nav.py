@@ -6,7 +6,8 @@ def require_login():
         if key not in st.session_state:
             st.session_state[key] = default
     if not st.session_state["logged_in"]:
-        st.switch_page("app.py")
+        st.markdown('<script>window.location.href = "/";</script>', unsafe_allow_html=True)
+        st.stop()
 
 def navbar(active_page: str):
     """Render the top Homely-style navigation bar."""

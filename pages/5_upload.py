@@ -137,8 +137,8 @@ with col_r:
                 },
                 hide_index=True, use_container_width=True
             )
-        else:
-            edited_df = df
+    elif st.session_state.get("upload_df") is not None:
+        edited_df = st.session_state["upload_df"]
 
         if st.button(f"Sync {found} transactions to database →", use_container_width=True):
             count = skipped = 0
