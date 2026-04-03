@@ -1,4 +1,5 @@
 import streamlit as st
+from utils.auth import check_login, register_user
 from utils.nav import require_login, navbar
 
 st.set_page_config(
