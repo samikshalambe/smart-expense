@@ -9,6 +9,7 @@ from utils.auth import get_user_details
 st.set_page_config(page_title="Settings · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 st.markdown(SHARED_CSS, unsafe_allow_html=True)
 require_login()
+navbar("Settings")
 
 user_name = get_user_details(st.session_state["username"])
 

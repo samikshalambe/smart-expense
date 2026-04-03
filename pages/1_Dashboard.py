@@ -14,6 +14,7 @@ from utils.report_gen import generate_pdf_report
 st.set_page_config(page_title="Dashboard · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 st.markdown(SHARED_CSS, unsafe_allow_html=True)
 require_login()
+navbar("Dashboard")
 
 user_name = get_user_details(st.session_state["username"])
 hour      = datetime.now().hour

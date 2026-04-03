@@ -11,6 +11,7 @@ from utils.auth import get_user_details
 st.set_page_config(page_title="Transactions · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 st.markdown(SHARED_CSS, unsafe_allow_html=True)
 require_login()
+navbar("Transactions")
 
 # ── Stat cards ──────────────────────────────────────────────────
 total_out = execute_query("SELECT SUM(amount) as t FROM expenses", fetch=True)

@@ -41,7 +41,9 @@ for key, default in [("logged_in", False), ("username", None)]:
         st.session_state[key] = default
 
 if st.session_state["logged_in"]:
-    navbar("Dashboard")  # Show navigation when logged in
+    # Temporarily disabled automatic redirect to avoid st.switch_page error
+    # st.switch_page("pages/1_Dashboard.py")
+    pass  # Navigation is handled by individual pages
 else:
     st.markdown("<br><br>", unsafe_allow_html=True)
 

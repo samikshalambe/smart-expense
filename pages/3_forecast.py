@@ -1,8 +1,12 @@
-"""Smart Upload — modern form with drop zone and transaction parsing."""
 import streamlit as st
 import pandas as pd
-from utils.db_manager import get_categories, add_expense
-from utils.pdf_processor import parse_bank_statement
+from utils.nav import require_login, navbar
+from utils.styles import SHARED_CSS
+
+st.set_page_config(page_title="AI Forecast · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
+st.markdown(SHARED_CSS, unsafe_allow_html=True)
+require_login()
+navbar("AI Forecast")
 
 st.markdown("""
 <style>
