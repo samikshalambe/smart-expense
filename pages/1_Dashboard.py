@@ -274,12 +274,11 @@ with trend_tab1:
             y=df_daily["total"],
             mode="lines",
             name="Daily Spending",
-            line=dict(color="#a685d0", width=3),
+            line=dict(color="#a685d0", width=3, shape="spline"),
             marker=dict(size=0),
             fill="tozeroy",
             fillcolor="rgba(182, 159, 232, 0.3)",
             hovertemplate="<b>%{x|%d %b}</b><br>₹%{y:,.0f}<extra></extra>",
-            smooth=True,
         ))
         fig_daily.update_layout(
             xaxis_title="Date",
@@ -318,12 +317,11 @@ with trend_tab2:
             y=df_monthly["total"],
             mode="lines",
             name="Monthly Spending",
-            line=dict(color="#a685d0", width=3),
+            line=dict(color="#a685d0", width=3, shape="spline"),
             marker=dict(size=0),
             fill="tozeroy",
             fillcolor="rgba(182, 159, 232, 0.3)",
             hovertemplate="<b>%{x}</b><br>₹%{y:,.0f}<extra></extra>",
-            smooth=True,
         ))
         fig_monthly.update_layout(
             xaxis_title="Month",

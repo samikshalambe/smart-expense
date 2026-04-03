@@ -135,11 +135,10 @@ if cumulative:
     fig.add_trace(go.Scatter(
         x=actual_days, y=cumulative,
         mode="lines", name="Actual",
-        line=dict(color="#a685d0", width=3),
+        line=dict(color="#a685d0", width=3, shape="spline"),
         fill="tozeroy",
         fillcolor="rgba(182, 159, 232, 0.3)",
         hovertemplate="<b>Day %{x}</b><br>₹%{y:,.0f}<extra></extra>",
-        smooth=True,
     ))
 
 # Projected area with dashed fill
@@ -147,11 +146,10 @@ if len(proj_vals) > 1:
     fig.add_trace(go.Scatter(
         x=proj_days, y=proj_vals,
         mode="lines", name="Projected",
-        line=dict(color=proj_line_color, width=2.5, dash="dash"),
+        line=dict(color=proj_line_color, width=2.5, dash="dash", shape="spline"),
         fill="tonexty" if cumulative else "tozeroy",
         fillcolor=f"rgba({255 if proj_over else 16}, {180 if proj_over else 185}, {129 if not proj_over else 52}, 0.15)",
         hovertemplate="<b>Day %{x}</b><br>₹%{y:,.0f}<extra></extra>",
-        smooth=True,
     ))
 
 # Budget limit horizontal
