@@ -13,7 +13,8 @@ def get_connection():
         )
         return conn
     except Exception as e:
-        st.error(f"Error connecting to database: {e}")
+        # Don't show error message here - let calling functions handle it
+        print(f"Database connection failed: {e}")
         return None
 
 def execute_query(query, params=(), fetch=False):
@@ -34,14 +35,18 @@ def execute_query(query, params=(), fetch=False):
         conn.close()
         return result
     except Exception as e:
-        st.error(f"SQL Error: {e}")
+        # Don't show st.error here - let calling functions handle errors
+        print(f"SQL Error: {e}")
         if conn:
             conn.close()
         return None
 
 def get_categories():
     """Fetches all categories from the database."""
-    return execute_query("SELECT * FROM categories", fetch=True)
+    try:
+        return execute_query("SELECT * FROM categories", fetch=True) or []
+    except:
+        return []
 
 def add_expense(date, category, amount, description, source="Manual"):
     """Inserts a new expense into the database."""
