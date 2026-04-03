@@ -10,52 +10,127 @@ from utils.auth import get_user_details
 
 st.markdown("""
 <style>
-    .dashboard-header {
-        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-        padding: 24px 32px;
-        border-radius: 16px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 15px rgba(59,130,246,0.2);
+    .welcome-header {
+        margin-bottom: 32px;
     }
-    .dashboard-header h1 {
-        color: white !important;
-        margin: 0 !important;
-        font-size: 32px !important;
+    .welcome-header h1 {
+        color: #4a3f72 !important;
+        font-size: 28px !important;
+        margin-bottom: 4px !important;
+        font-weight: 700 !important;
     }
-    .dashboard-header p {
-        color: rgba(255,255,255,0.9) !important;
-        margin: 8px 0 0 0 !important;
+    .welcome-header p {
+        color: #a685d0 !important;
         font-size: 14px !important;
+        margin: 0 !important;
     }
-    .month-badge {
-        display: inline-block;
-        background: rgba(255,255,255,0.2);
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 13px;
-        color: white;
+    .balance-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 245, 252, 0.95) 100%) !important;
+        border-radius: 16px !important;
+        border: 1px solid rgba(171, 131, 201, 0.3) !important;
+        padding: 28px 32px !important;
+        margin-bottom: 24px !important;
+        box-shadow: 0 4px 20px rgba(166, 108, 205, 0.1) !important;
+    }
+    .balance-label {
+        color: #a685d0 !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 8px !important;
+    }
+    .balance-value {
+        color: #7c5ca8 !important;
+        font-size: 42px !important;
+        font-weight: 800 !important;
+        margin-bottom: 12px !important;
+    }
+    .card-hint {
+        color: #a685d0 !important;
+        font-size: 12px !important;
+    }
+    .category-grid-item {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(248, 245, 252, 0.8) 100%) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(171, 131, 201, 0.2) !important;
+        padding: 16px !important;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .category-grid-item:hover {
+        border-color: rgba(171, 131, 201, 0.4) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(166, 108, 205, 0.1) !important;
+    }
+    .category-name {
+        color: #4a3f72 !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        margin-bottom: 4px !important;
+    }
+    .category-amount {
+        color: #7c5ca8 !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+    }
+    .recent-payment-item {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(248, 245, 252, 0.6) 100%) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(171, 131, 201, 0.15) !important;
+        padding: 12px 16px !important;
+        margin-bottom: 8px !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .payment-category {
+        color: #4a3f72 !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+    }
+    .payment-amount {
+        color: #7c5ca8 !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+    }
+    .section-title {
+        color: #4a3f72 !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        margin-top: 28px !important;
+        margin-bottom: 16px !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ── Category palette ─────────────────────────────────────────────────
 CAT_COLOR = {
-    "Food": "#22c55e", "Groceries": "#22c55e",
-    "Utilities": "#3b82f6",
-    "Dining": "#a855f7",
-    "Transport": "#f59e0b",
-    "Rent": "#6366f1",
+    "Food": "#34d399", "Groceries": "#34d399",
+    "Utilities": "#60a5fa",
+    "Dining": "#a78bfa",
+    "Transport": "#fbbf24",
+    "Rent": "#818cf8",
     "Entertainment": "#ec4899",
-    "Other": "#6b7280",
+    "Laundry": "#14b8a6",
+    "Internet": "#3b82f6",
+    "Services": "#f472b6",
+    "Miscellaneous": "#f59e0b",
+    "Outings": "#8b5cf6",
+    "Car": "#ef4444",
+    "Other": "#9ca3af",
 }
 
-# ── Data ─────────────────────────────────────────────────────────────
-status   = get_budget_status()
-budget   = status["total_budget"]
-current  = status["current_total"]
+# ── Get user and budget data ─────────────────────────────────────────
+user_name = get_user_details(st.session_state["username"]) or "User"
+status = get_budget_status()
+budget = status["total_budget"]
+current = status["current_total"]
 forecast = status["predicted_total"]
 remaining = budget - current
+pct = int(current / budget * 100) if budget > 0 else 0
 
+# Get category-wise expenses
 cat_rows = execute_query(
     """SELECT category, SUM(amount) AS total
        FROM expenses
@@ -64,93 +139,119 @@ cat_rows = execute_query(
     fetch=True,
 ) or []
 
-# ── Header with gradient ─────────────────────────────────────────────
-user_name = get_user_details(st.session_state["username"]) or "User"
-month_str = datetime.now().strftime("%B %Y")
+# Get recent expenses
+recent = execute_query(
+    "SELECT date, category, description, amount FROM expenses "
+    "ORDER BY date DESC LIMIT 8",
+    fetch=True,
+) or []
 
-header_col1, header_col2 = st.columns([3, 1])
-with header_col1:
-    st.markdown(f'<div class="dashboard-header"><h1>Dashboard</h1><p>Your spending overview</p></div>', unsafe_allow_html=True)
-with header_col2:
-    st.markdown(f'<div style="text-align: right; padding: 24px 0;"><span class="month-badge">{month_str}</span></div>', unsafe_allow_html=True)
+# ── Welcome Header ───────────────────────────────────────────────────
+st.markdown(f'''
+<div class="welcome-header">
+    <h1>Welcome back, {user_name}!</h1>
+    <p>Here's your spending overview</p>
+</div>
+''', unsafe_allow_html=True)
 
-# ── Global alert banner ───────────────────────────────────────────────
-if status["is_over_budget"]:
-    over = forecast - budget
-    st.error(f"Month-end projection: ₹{forecast:,.0f} — over budget by ₹{over:,.0f}")
-elif budget > 0 and forecast > budget * 0.85:
-    st.warning(
-        f"Projected to spend ₹{forecast:,.0f} — approaching your ₹{budget:,.0f} budget."
-    )
+# ── Main Layout ──────────────────────────────────────────────────────
+main_col, side_col = st.columns([2, 1])
 
-# ── Three stat pills ─────────────────────────────────────────────────
-st.write("")
-c1, c2, c3 = st.columns(3)
-pct = int(current / budget * 100) if budget > 0 else 0
+with main_col:
+    # ── Available Balance Card ─────────────────────────────────────
+    st.markdown(f'''
+    <div class="balance-card">
+        <div class="balance-label">Available Balance</div>
+        <div class="balance-value">₹ {remaining:,.2f}</div>
+        <div class="card-hint">•••• 3922</div>
+    </div>
+    ''', unsafe_allow_html=True)
+    
+    # ── Stats Cards ────────────────────────────────────────────────
+    stats_col1, stats_col2, stats_col3 = st.columns(3)
+    with stats_col1:
+        st.metric("Monthly Income", f"₹ {budget:,.0f}")
+    with stats_col2:
+        st.metric("Monthly Budget (Limit)", f"₹ {budget:,.0f}")
+    with stats_col3:
+        st.metric("Spent", f"₹ {current:,.0f}")
+    
+    # ── Recent Payments ────────────────────────────────────────────
+    st.markdown('<div class="section-title">Recent Payments</div>', unsafe_allow_html=True)
+    
+    if recent:
+        payment_html = ""
+        for r in recent[:6]:
+            cat = r.get("category", "Other")
+            amt = r.get("amount", 0)
+            payment_html += f'''
+            <div class="recent-payment-item">
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background: {CAT_COLOR.get(cat, '#9ca3af')}; margin-right: 12px;"></div>
+                    <span class="payment-category">{cat}</span>
+                </div>
+                <span class="payment-amount">-  ₹ {amt:,.0f}</span>
+            </div>
+            '''
+        st.markdown(payment_html, unsafe_allow_html=True)
+    else:
+        st.info("No recent payments.")
 
-with c1:
-    st.metric("Spent", f"₹{current:,.0f}", f"{pct}% of budget")
-with c2:
-    st.metric("Budget", f"₹{budget:,.0f}")
-with c3:
-    delta_str = f"₹{abs(remaining):,.0f} {'over' if remaining < 0 else 'left'}"
-    st.metric("Left", f"₹{remaining:,.0f}", delta=delta_str,
-              delta_color="inverse" if remaining < 0 else "normal")
-
-st.divider()
-
-# ── Donut + Legend ────────────────────────────────────────────────────
-if cat_rows:
-    labels = [r["category"] for r in cat_rows]
-    values = [float(r["total"]) for r in cat_rows]
-    colors = [CAT_COLOR.get(l, "#6b7280") for l in labels]
-
-    # Build donut
-    fig = go.Figure(data=[go.Pie(
-        labels=labels, values=values,
-        hole=0.64,
-        marker=dict(colors=colors, line=dict(color="rgba(0,0,0,0.15)", width=2)),
-        textinfo="none",
-        hovertemplate="%{label}: ₹%{value:,.0f}<extra></extra>",
-        sort=False,
-    )])
-    fig.add_annotation(
-        text=f"<b>{pct}%</b>",
-        x=0.5, y=0.5, showarrow=False,
-        font=dict(size=24, color="#e2e8f0"),
-    )
-    fig.update_layout(
-        showlegend=False,
-        margin=dict(l=0, r=0, t=8, b=8),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        height=210,
-    )
-
-    st.markdown("**Spending by Category**")
-    col_donut, col_legend = st.columns([1, 1.6])
-    with col_donut:
+with side_col:
+    # ── Expenses Statistics Chart ──────────────────────────────────
+    if cat_rows:
+        labels = [r["category"] for r in cat_rows]
+        values = [float(r["total"]) for r in cat_rows]
+        colors = [CAT_COLOR.get(l, "#9ca3af") for l in labels]
+        
+        fig = go.Figure(data=[go.Pie(
+            labels=labels,
+            values=values,
+            hole=0.5,
+            marker=dict(colors=colors, line=dict(color="white", width=2)),
+            textinfo="none",
+            hovertemplate="%{label}: ₹%{value:,.0f}<extra></extra>",
+        )])
+        fig.add_annotation(
+            text=f"<b>{pct}%</b>",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=24, color="#7c5ca8"),
+        )
+        fig.update_layout(
+            title="Expenses Statistics",
+            showlegend=False,
+            margin=dict(l=0, r=0, t=30, b=0),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            height=300,
+        )
         st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-    with col_legend:
-        st.write("")
-        st.write("")
-        for label, value in zip(labels, values):
-            kk = value / 1000
-            la, lb = st.columns([3, 2])
-            with la:
-                st.write(f"{label}")
-            with lb:
-                st.write(f"₹{kk:.1f}k")
+st.divider()
 
+# ── Monthly Expenses Grid ───────────────────────────────────────────
+st.markdown('<div class="section-title">Monthly Expenses</div>', unsafe_allow_html=True)
+
+if cat_rows:
+    # Display categories in a grid
+    cols = st.columns(3)
+    for idx, (cat, val) in enumerate([(r["category"], r["total"]) for r in cat_rows]):
+        with cols[idx % 3]:
+            st.markdown(f'''
+            <div class="category-grid-item">
+                <div style="width: 20px; height: 20px; border-radius: 4px; background: {CAT_COLOR.get(cat, '#9ca3af')}; margin: 0 auto 8px;"></div>
+                <div class="category-name">{cat}</div>
+                <div class="category-amount">₹ {val:,.0f}</div>
+            </div>
+            ''', unsafe_allow_html=True)
 else:
-    st.info("No expenses recorded this month. Use Add Expenses to get started.")
+    st.info("No expenses recorded this month.")
 
 st.divider()
 
-# ── Daily vs Monthly Trends ──────────────────────────────────────────
-st.markdown("**Spending Trends**")
-trend_tab1, trend_tab2 = st.tabs(["📅 Daily", "📊 Monthly"])
+# ── Daily vs Monthly Trends ────────────────────────────────────────
+st.markdown('<div class="section-title">Spending Trends</div>', unsafe_allow_html=True)
+trend_tab1, trend_tab2 = st.tabs(["Daily", "Monthly"])
 
 # DAILY TREND
 with trend_tab1:
@@ -173,22 +274,21 @@ with trend_tab1:
             y=df_daily["total"],
             mode="lines+markers",
             name="Daily Spending",
-            line=dict(color="#3b82f6", width=3),
-            marker=dict(size=8, color="#3b82f6"),
+            line=dict(color="#a685d0", width=3),
+            marker=dict(size=8, color="#a685d0"),
             fill="tozeroy",
-            fillcolor="rgba(59, 130, 246, 0.2)",
+            fillcolor="rgba(182, 159, 232, 0.2)",
             hovertemplate="<b>%{x|%d %b}</b><br>₹%{y:,.0f}<extra></extra>",
         ))
         fig_daily.update_layout(
-            title="Last 30 Days of Daily Spending",
             xaxis_title="Date",
             yaxis_title="Amount (₹)",
             hovermode="x unified",
-            template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0.05)",
-            height=400,
-            margin=dict(l=0, r=0, t=40, b=0),
+            plot_bgcolor="rgba(248, 245, 252, 0.3)",
+            height=360,
+            margin=dict(l=0, r=0, t=0, b=0),
+            font=dict(color="#6b5b8a"),
         )
         st.plotly_chart(fig_daily, use_container_width=True, config={"displayModeBar": False})
     else:
@@ -215,48 +315,21 @@ with trend_tab2:
             y=df_monthly["total"],
             name="Monthly Spending",
             marker=dict(
-                color=df_monthly["total"],
-                colorscale="Blues",
-                showscale=False,
-                line=dict(color="rgba(59, 130, 246, 0.5)", width=1),
+                color="#a685d0",
+                line=dict(color="rgba(171, 131, 201, 0.5)", width=1),
             ),
             hovertemplate="<b>%{x}</b><br>₹%{y:,.0f}<extra></extra>",
         ))
         fig_monthly.update_layout(
-            title="Last 12 Months of Monthly Spending",
             xaxis_title="Month",
             yaxis_title="Amount (₹)",
             hovermode="x",
-            template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0.05)",
-            height=400,
-            margin=dict(l=0, r=0, t=40, b=0),
+            plot_bgcolor="rgba(248, 245, 252, 0.3)",
+            height=360,
+            margin=dict(l=0, r=0, t=0, b=0),
+            font=dict(color="#6b5b8a"),
         )
         st.plotly_chart(fig_monthly, use_container_width=True, config={"displayModeBar": False})
     else:
         st.info("No monthly spending data available.")
-
-st.divider()
-
-# ── Recent Transactions ───────────────────────────────────────────────
-st.markdown("**Recent Transactions**")
-
-recent = execute_query(
-    "SELECT date, category, description, amount FROM expenses "
-    "ORDER BY date DESC LIMIT 10",
-    fetch=True,
-) or []
-
-if recent:
-    df = pd.DataFrame(recent)
-    df["amount"]   = df["amount"].astype(float).map(lambda x: f"₹{x:,.0f}")
-    df["date"]     = pd.to_datetime(df["date"]).dt.strftime("%d %b %Y")
-    df["description"] = df["description"].fillna("—")
-    df = df.rename(columns={
-        "date": "Date", "category": "Category",
-        "description": "Description", "amount": "Amount",
-    })
-    st.dataframe(df, hide_index=True, use_container_width=True)
-else:
-    st.caption("No transactions yet.")
