@@ -6,8 +6,7 @@ def require_login():
         if key not in st.session_state:
             st.session_state[key] = default
     if not st.session_state["logged_in"]:
-        st.markdown('<script>window.location.href = "/";</script>', unsafe_allow_html=True)
-        st.stop()
+        st.switch_page("app.py")
 
 def navbar(active_page: str):
     """Render the top Homely-style navigation bar."""
@@ -26,7 +25,7 @@ def navbar(active_page: str):
         color     = "#3fb950" if is_active else "#8b949e"
         underline = f"border-bottom:2px solid #3fb950;padding-bottom:2px;" if is_active else ""
         nav_items_html += f"""
-        <a href="/{path.replace('pages/','').replace('.py','').replace('_',' ').strip()}"
+        <a href="/{path.replace('pages/','').replace('.py','').strip()}"
            style="display:flex;align-items:center;gap:6px;text-decoration:none;color:{color};
                   font-size:13px;font-weight:{'600' if is_active else '400'};
                   white-space:nowrap;{underline}padding:4px 0;">

@@ -40,8 +40,7 @@ for key, default in [("logged_in", False), ("username", None)]:
         st.session_state[key] = default
 
 if st.session_state["logged_in"]:
-    st.markdown('<script>window.location.href = "/1_Dashboard";</script>', unsafe_allow_html=True)
-    st.stop()
+    st.switch_page("pages/1_Dashboard.py")
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 
@@ -67,7 +66,7 @@ with tab_login:
             if check_login(user, pw):
                 st.session_state["logged_in"] = True
                 st.session_state["username"]  = user
-                st.markdown('<script>window.location.href = "/1_Dashboard";</script>', unsafe_allow_html=True)
+                st.switch_page("pages/1_Dashboard.py")
             else:
                 st.error("Invalid username or password.")
 

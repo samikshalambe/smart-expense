@@ -75,8 +75,7 @@ with col_r:
     if st.button("↩  Log out", key="logout"):
         st.session_state["logged_in"] = False
         st.session_state["username"]  = None
-        st.markdown('<script>window.location.href = "/";</script>', unsafe_allow_html=True)
-        st.stop()
+        st.switch_page("app.py")
 
     # ── Danger zone ────────────────────────────────────────────
     st.markdown("""
