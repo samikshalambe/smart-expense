@@ -40,7 +40,9 @@ for key, default in [("logged_in", False), ("username", None)]:
         st.session_state[key] = default
 
 if st.session_state["logged_in"]:
-    st.switch_page("pages/1_Dashboard.py")
+    # Temporarily disabled automatic redirect to avoid st.switch_page error
+    # st.switch_page("pages/1_Dashboard.py")
+    pass
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 
@@ -66,7 +68,10 @@ with tab_login:
             if check_login(user, pw):
                 st.session_state["logged_in"] = True
                 st.session_state["username"]  = user
-                st.switch_page("pages/1_Dashboard.py")
+                # Temporarily disabled st.switch_page to avoid errors
+                # st.switch_page("pages/1_Dashboard.py")
+                st.success("Login successful! Use the navigation above to access your dashboard.")
+                st.rerun()
             else:
                 st.error("Invalid username or password.")
 

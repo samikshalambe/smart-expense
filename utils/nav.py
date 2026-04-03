@@ -6,7 +6,10 @@ def require_login():
         if key not in st.session_state:
             st.session_state[key] = default
     if not st.session_state["logged_in"]:
-        st.switch_page("app.py")
+        # Temporarily disabled st.switch_page to avoid errors
+        # st.switch_page("app.py")
+        st.error("Please log in to access this page.")
+        st.stop()
 
 def navbar(active_page: str):
     """Render the top Homely-style navigation bar."""

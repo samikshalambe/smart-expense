@@ -75,7 +75,10 @@ with col_r:
     if st.button("↩  Log out", key="logout"):
         st.session_state["logged_in"] = False
         st.session_state["username"]  = None
-        st.switch_page("app.py")
+        # Temporarily disabled st.switch_page to avoid errors
+        # st.switch_page("app.py")
+        st.success("Logged out successfully!")
+        st.rerun()
 
     # ── Danger zone ────────────────────────────────────────────
     st.markdown("""
