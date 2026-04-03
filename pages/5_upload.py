@@ -11,7 +11,6 @@ from utils.pdf_processor import parse_bank_statement
 st.set_page_config(page_title="Smart Upload · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 st.markdown(SHARED_CSS, unsafe_allow_html=True)
 require_login()
-navbar("Smart Upload")
 
 col_l, col_r = st.columns(2)
 
