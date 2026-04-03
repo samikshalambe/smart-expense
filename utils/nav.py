@@ -62,14 +62,41 @@ def navbar(active_page: str):
     """, unsafe_allow_html=True)
 
     # Streamlit page_link buttons (invisible — drive actual navigation)
-    st.markdown("""
-    <style>
-    [data-testid="stPageLink"] { display: none !important; }
-    </style>
-    """, unsafe_allow_html=True)
+    nav_items_html = ""
+    for name, (path, label, icon_path) in pages.items():
+        is_active = (name == active_page)
+        color     = "#3fb950" if is_active else "#8b949e"
+        underline = f"border-bottom:2px solid #3fb950;padding-bottom:2px;" if is_active else ""
+        nav_items_html += f"""
+        <a href="/{path.replace('pages/','').replace('.py','').strip()}"
+           style="display:flex;align-items:center;gap:6px;text-decoration:none;color:{color};
+                  font-size:13px;font-weight:{'600' if is_active else '400'};
+                  white-space:nowrap;{underline}padding:4px 0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="{icon_path}"/>
+          </svg>
+          {label}
+        </a>"""
 
-    cols = st.columns(len(pages))
-    for i, (name, (path, label, _)) in enumerate(pages.items()):
-        with cols[i]:
-            if st.page_link(path, label=label):
-                pass
+    st.markdown(f"""
+    <div style="background:#161b22;border-bottom:1px solid #21262d;
+                padding:12px 24px;margin:-1.5rem -2rem 1.5rem -2rem;
+                display:flex;align-items:center;gap:0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-right:32px;flex-shrink:0;">
+        <div style="width:28px;height:28px;background:#238636;border-radius:6px;
+                    display:flex;align-items:center;justify-content:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span style="font-size:18px;font-weight:700;color:#f0f6fc;">SmartExpense</span>
+      </div>
+      <div style="display:flex;gap:24px;">
+        {nav_items_html}
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
