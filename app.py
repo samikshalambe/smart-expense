@@ -1,70 +1,89 @@
 import streamlit as st
-from utils.styles import inject_styles
-from utils.auth import get_user_details
+from utils.auth import check_login, register_user
 
 st.set_page_config(
     page_title="SmartExpense",
     page_icon="💰",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed"
 )
 
-inject_styles()
-
-# Custom sidebar header styling - Light pastel purple theme
 st.markdown("""
 <style>
-    .sidebar-header {
-        background: linear-gradient(135deg, #b29fe8 0%, #a685d0 100%);
-        padding: 20px 16px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(166, 108, 205, 0.2);
-    }
-    .sidebar-header h2 {
-        color: white !important;
-        margin: 0 !important;
-        font-size: 22px !important;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+.stApp { background: #0d1117; }
+#MainMenu, footer, header { visibility: hidden; }
+[data-testid="stSidebar"] { display: none !important; }
+[data-testid="collapsedControl"] { display: none !important; }
+.block-container { padding: 2rem !important; max-width: 480px !important; margin: 0 auto; }
+.stButton > button {
+    background: #238636; color: #fff !important; border: none !important;
+    border-radius: 8px; font-weight: 500; width: 100%; padding: 0.6rem 1rem;
+}
+.stButton > button:hover { background: #2ea043 !important; }
+.stTextInput > div > div > input {
+    background: #161b22 !important; border: 1px solid #30363d !important;
+    border-radius: 8px !important; color: #f0f6fc !important;
+}
+[data-testid="stForm"] {
+    background: #161b22; border: 1px solid #21262d; border-radius: 14px; padding: 24px;
+}
+.stTabs [data-baseweb="tab-list"] { background: #161b22; border-radius: 10px; padding: 4px; }
+.stTabs [data-baseweb="tab"] { background: transparent; color: #8b949e; font-size: 14px; font-weight: 500; }
+.stTabs [aria-selected="true"] { background: #21262d !important; color: #f0f6fc !important; }
 </style>
 """, unsafe_allow_html=True)
 
-for k, v in [("logged_in", False), ("username", None)]:
-    if k not in st.session_state:
-        st.session_state[k] = v
-
-# ── Page registry ─────────────────────────────────────────────────────
-DASHBOARD    = st.Page("pages/1_Dashboard.py",    title="Dashboard")
-ADD_EXPENSE  = st.Page("pages/2_Add_Expense.py",  title="Add Expenses")
-BILL_SPLIT   = st.Page("pages/4_Split_Settle.py", title="Bill Splitter")
-AI_FORECAST  = st.Page("pages/6_Theme.py",        title="Daily Spending")
-PDF_REPORT   = st.Page("pages/7_PDF_Report.py",   title="PDF Report")
-SETTINGS     = st.Page("pages/5_Settings.py",     title="Settings")
-
-ALL_PAGES = [DASHBOARD, ADD_EXPENSE, BILL_SPLIT,
-             AI_FORECAST, PDF_REPORT, SETTINGS]
+for key, default in [("logged_in", False), ("username", None)]:
+    if key not in st.session_state:
+        st.session_state[key] = default
 
 if st.session_state["logged_in"]:
-    user = get_user_details(st.session_state["username"]) or "User"
+    st.switch_page("pages/1_Dashboard.py")
 
-    with st.sidebar:
-        st.markdown('<div class="sidebar-header"><h2>SmartExpense</h2></div>', unsafe_allow_html=True)
-        st.caption(f"Signed in as **{user}**")
-        st.divider()
+st.markdown("<br><br>", unsafe_allow_html=True)
 
-        for page in ALL_PAGES:
-            st.page_link(page)
+st.markdown("""
+<div style="text-align:center;margin-bottom:28px;">
+  <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <div style="width:36px;height:36px;background:#238636;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <span style="font-size:22px;font-weight:700;color:#f0f6fc;">SmartExpense</span>
+  </div>
+  <p style="color:#8b949e;font-size:14px;margin:0;">Household finance, simplified</p>
+</div>
+""", unsafe_allow_html=True)
 
-        st.divider()
-        if st.button("Logout", use_container_width=True):
-            st.session_state["logged_in"] = False
-            st.session_state["username"]  = None
-            st.rerun()
+tab_login, tab_register = st.tabs(["Sign in", "Create account"])
 
-    pg = st.navigation(ALL_PAGES, position="hidden")
+with tab_login:
+    with st.form("login_form"):
+        user = st.text_input("Username")
+        pw   = st.text_input("Password", type="password")
+        if st.form_submit_button("Sign in", use_container_width=True):
+            if check_login(user, pw):
+                st.session_state["logged_in"] = True
+                st.session_state["username"]  = user
+                st.switch_page("pages/1_Dashboard.py")
+            else:
+                st.error("Invalid username or password.")
 
-else:
-    pg = st.navigation([st.Page("pages/0_Login.py", title="Login")], position="hidden")
-
-pg.run()
+with tab_register:
+    with st.form("register_form"):
+        new_name = st.text_input("Full name")
+        new_user = st.text_input("Username")
+        new_pw   = st.text_input("Password", type="password")
+        new_pw2  = st.text_input("Confirm password", type="password")
+        if st.form_submit_button("Create account", use_container_width=True):
+            if not new_name or not new_user or not new_pw:
+                st.error("Please fill in all fields.")
+            elif new_pw != new_pw2:
+                st.error("Passwords do not match.")
+            elif len(new_pw) < 6:
+                st.error("Password must be at least 6 characters.")
+            elif register_user(new_user, new_pw, new_name):
+                st.success("Account created! Sign in now.")
+            else:
+                st.error("Username already taken.")
