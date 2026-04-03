@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.auth import check_login, register_user
+from utils.nav import require_login, navbar
 
 st.set_page_config(
     page_title="SmartExpense",
@@ -42,7 +42,7 @@ for key, default in [("logged_in", False), ("username", None)]:
 if st.session_state["logged_in"]:
     # Temporarily disabled automatic redirect to avoid st.switch_page error
     # st.switch_page("pages/1_Dashboard.py")
-    pass
+    navbar("Dashboard")  # Show navigation when logged in
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 
@@ -70,7 +70,14 @@ with tab_login:
                 st.session_state["username"]  = user
                 # Temporarily disabled st.switch_page to avoid errors
                 # st.switch_page("pages/1_Dashboard.py")
-                st.success("Login successful! Use the navigation above to access your dashboard.")
+                st.success("Login successful!")
+                st.markdown("""
+                <div style="text-align:center;margin:20px 0;">
+                  <a href="/1_Dashboard" style="background:#238636;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:500;display:inline-block;">
+                    Go to Dashboard →
+                  </a>
+                </div>
+                """, unsafe_allow_html=True)
                 st.rerun()
             else:
                 st.error("Invalid username or password.")
