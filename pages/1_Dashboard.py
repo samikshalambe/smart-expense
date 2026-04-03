@@ -148,6 +148,97 @@ else:
 
 st.divider()
 
+# ── Daily vs Monthly Trends ──────────────────────────────────────────
+st.markdown("**Spending Trends**")
+trend_tab1, trend_tab2 = st.tabs(["📅 Daily", "📊 Monthly"])
+
+# DAILY TREND
+with trend_tab1:
+    daily_data = execute_query(
+        """SELECT DATE(date) AS day, SUM(amount) AS total
+           FROM expenses
+           WHERE date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+           GROUP BY DATE(date)
+           ORDER BY day ASC""",
+        fetch=True,
+    ) or []
+    
+    if daily_data:
+        df_daily = pd.DataFrame(daily_data)
+        df_daily["day"] = pd.to_datetime(df_daily["day"])
+        
+        fig_daily = go.Figure()
+        fig_daily.add_trace(go.Scatter(
+            x=df_daily["day"],
+            y=df_daily["total"],
+            mode="lines+markers",
+            name="Daily Spending",
+            line=dict(color="#3b82f6", width=3),
+            marker=dict(size=8, color="#3b82f6"),
+            fill="tozeroy",
+            fillcolor="rgba(59, 130, 246, 0.2)",
+            hovertemplate="<b>%{x|%d %b}</b><br>₹%{y:,.0f}<extra></extra>",
+        ))
+        fig_daily.update_layout(
+            title="Last 30 Days of Daily Spending",
+            xaxis_title="Date",
+            yaxis_title="Amount (₹)",
+            hovermode="x unified",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0.05)",
+            height=400,
+            margin=dict(l=0, r=0, t=40, b=0),
+        )
+        st.plotly_chart(fig_daily, use_container_width=True, config={"displayModeBar": False})
+    else:
+        st.info("No daily spending data available.")
+
+# MONTHLY TREND
+with trend_tab2:
+    monthly_data = execute_query(
+        """SELECT DATE_FORMAT(date, '%Y-%m') AS month, SUM(amount) AS total
+           FROM expenses
+           WHERE date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+           GROUP BY DATE_FORMAT(date, '%Y-%m')
+           ORDER BY month ASC""",
+        fetch=True,
+    ) or []
+    
+    if monthly_data:
+        df_monthly = pd.DataFrame(monthly_data)
+        df_monthly["month_label"] = pd.to_datetime(df_monthly["month"]).dt.strftime("%b %Y")
+        
+        fig_monthly = go.Figure()
+        fig_monthly.add_trace(go.Bar(
+            x=df_monthly["month_label"],
+            y=df_monthly["total"],
+            name="Monthly Spending",
+            marker=dict(
+                color=df_monthly["total"],
+                colorscale="Blues",
+                showscale=False,
+                line=dict(color="rgba(59, 130, 246, 0.5)", width=1),
+            ),
+            hovertemplate="<b>%{x}</b><br>₹%{y:,.0f}<extra></extra>",
+        ))
+        fig_monthly.update_layout(
+            title="Last 12 Months of Monthly Spending",
+            xaxis_title="Month",
+            yaxis_title="Amount (₹)",
+            hovermode="x",
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0.05)",
+            height=400,
+            margin=dict(l=0, r=0, t=40, b=0),
+        )
+        st.plotly_chart(fig_monthly, use_container_width=True, config={"displayModeBar": False})
+    else:
+        st.info("No monthly spending data available.")
+
+st.divider()
+
 # ── Recent Transactions ───────────────────────────────────────────────
 st.markdown("**Recent Transactions**")
 
