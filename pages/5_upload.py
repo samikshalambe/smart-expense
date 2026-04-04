@@ -8,7 +8,6 @@ from utils.styles import SHARED_CSS, get_badge, AVATAR_COLORS
 from utils.db_manager import get_categories, add_expense
 from utils.pdf_processor import parse_bank_statement
 
-st.set_page_config(page_title="Smart Upload · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 st.markdown(SHARED_CSS, unsafe_allow_html=True)
 require_login()
 navbar("Smart Upload")

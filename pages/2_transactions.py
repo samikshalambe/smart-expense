@@ -8,7 +8,6 @@ from utils.styles import SHARED_CSS, get_badge, AVATAR_COLORS
 from utils.db_manager import execute_query, get_categories, add_expense
 from utils.auth import get_user_details
 
-st.set_page_config(page_title="Transactions · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 st.markdown(SHARED_CSS, unsafe_allow_html=True)
 require_login()
 navbar("Transactions")

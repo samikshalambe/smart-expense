@@ -6,7 +6,6 @@ from utils.nav import require_login, navbar
 from utils.styles import SHARED_CSS
 from utils.upi_helper import generate_upi_qr
 
-st.set_page_config(page_title="Split Bills · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 st.markdown(SHARED_CSS, unsafe_allow_html=True)
 require_login()
 navbar("Split Bills")

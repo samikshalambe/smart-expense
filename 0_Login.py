@@ -1,6 +1,10 @@
 import streamlit as st
 from utils.auth import check_login, register_user
 
+# If already logged in, go straight to the dashboard
+if st.session_state.get("logged_in"):
+    st.switch_page("pages/1_Dashboard.py")
+
 st.markdown("""
 <style>
     .login-container {
@@ -46,12 +50,16 @@ with col:
             pw   = st.text_input("Password", type="password", placeholder="••••••••")
             st.write("")
             if st.form_submit_button("🚀 Login", use_container_width=True, type="primary"):
+                
                 if check_login(user, pw):
                     st.session_state["logged_in"] = True
                     st.session_state["username"]  = user
-                    st.rerun()
+                    
+                    # Direct route to the page
+                    st.switch_page("pages/1_Dashboard.py")
                 else:
-                    st.error("❌ Invalid credentials. Please try again.")       
+                    st.error("❌ Invalid credentials. Please try again.")
+                    
 
     with tab_reg:
         with st.form("reg_form"):

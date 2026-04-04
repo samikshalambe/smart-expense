@@ -6,7 +6,6 @@ from utils.styles import SHARED_CSS
 from utils.db_manager import execute_query, get_categories, clear_all_expenses
 from utils.auth import get_user_details
 
-st.set_page_config(page_title="Settings · SmartExpense", layout="wide", page_icon="💰", initial_sidebar_state="collapsed")
 st.markdown(SHARED_CSS, unsafe_allow_html=True)
 require_login()
 navbar("Settings")
@@ -75,10 +74,7 @@ with col_r:
     if st.button("↩  Log out", key="logout"):
         st.session_state["logged_in"] = False
         st.session_state["username"]  = None
-        # Temporarily disabled st.switch_page to avoid errors
-        # st.switch_page("app.py")
-        st.success("Logged out successfully!")
-        st.rerun()
+        st.switch_page("app.py")
 
     # ── Danger zone ────────────────────────────────────────────
     st.markdown("""

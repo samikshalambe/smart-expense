@@ -45,12 +45,12 @@ for key, default in [("logged_in", False), ("username", None)]:
 
 # ── Define all pages ─────────────────────────────────────────────
 all_pages = [
-    st.Page("pages/1_Dashboard.py",    title="Dashboard",    icon="⊞"),
-    st.Page("pages/2_Transactions.py", title="Transactions", icon="⊜"),
-    st.Page("pages/3_Forecast.py",     title="AI Forecast",  icon="∿"),
-    st.Page("pages/4_Split.py",        title="Split Bills",  icon="₹"),
-    st.Page("pages/5_Upload.py",       title="Smart Upload", icon="⬆"),
-    st.Page("pages/6_Settings.py",     title="Settings",     icon="⚙"),
+    st.Page("pages/1_Dashboard.py",    title="Dashboard",    icon=":material/dashboard:"),
+    st.Page("pages/2_Transactions.py", title="Transactions", icon=":material/receipt_long:"),
+    st.Page("pages/3_Forecast.py",     title="AI Forecast",  icon=":material/trending_up:"),
+    st.Page("pages/4_Split.py",        title="Split Bills",  icon=":material/call_split:"),
+    st.Page("pages/5_Upload.py",       title="Smart Upload", icon=":material/upload_file:"),
+    st.Page("pages/6_Settings.py",     title="Settings",     icon=":material/settings:"),
 ]
 
 # ── Routing ──────────────────────────────────────────────────────
