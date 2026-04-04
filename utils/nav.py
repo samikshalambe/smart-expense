@@ -12,29 +12,44 @@ def require_login():
 
 def navbar(active_page: str):
     """
-    Top navigation bar built with pure Streamlit buttons + st.switch_page.
-    No HTML anchor tags. No st.page_link. Works reliably on all Streamlit versions.
+    Top navigation bar.
+    Buttons store the destination in session state.
+    st.switch_page() is called AFTER the full navbar renders — never inside a column.
     """
 
-    pages = [
-        ("Dashboard",    "pages/1_Dashboard.py"),
-        ("Transactions", "pages/2_Transactions.py"),
-        ("AI Forecast",  "pages/3_Forecast.py"),
-        ("Split Bills",  "pages/4_Split.py"),
-        ("Smart Upload", "pages/5_Upload.py"),
-        ("Settings",     "pages/6_Settings.py"),
-    ]
-
-    # ── Navbar CSS ───────────────────────────────────────────────
-    st.markdown("""
-    <style>
-    /* Navbar container */
-    div[data-testid="stHorizontalBlock"].navbar-row {
-        background: #161b22;
+    PAGES = {
+        "Dashboard":    "pages/1_Dashboard.py",
+        "Transactions": "pages/2_Transactions.py",
+        "AI Forecast":  "pages/3_Forecast.py",
+        "Split Bills":  "pages/4_Split.py",
+        "Smart Upload": "pages/5_Upload.py",
+        "Settings":     "pages/6_Settings.py",
     }
 
-    /* Style ALL buttons in the navbar row */
-    div[data-testid="stHorizontalBlock"]:first-of-type .stButton > button {
+    # ── Handle pending navigation from previous click ────────────
+    # st.switch_page must be called at the top level — never inside
+    # a column or button callback. We store the destination in session
+    # state and switch here, before anything else renders.
+    if st.session_state.get("_nav_goto"):
+        dest = st.session_state.pop("_nav_goto")
+        st.switch_page(dest)
+
+    # ── CSS ──────────────────────────────────────────────────────
+    st.markdown("""
+    <style>
+    /* Dark navbar strip */
+    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type {
+        background: #161b22 !important;
+        border-bottom: 1px solid #21262d !important;
+        padding: 0 8px !important;
+        margin: -1.5rem -2rem 1rem -2rem !important;
+        gap: 0 !important;
+        align-items: stretch !important;
+    }
+
+    /* All nav buttons — inactive */
+    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type
+        .stButton > button {
         background: transparent !important;
         border: none !important;
         border-bottom: 2px solid transparent !important;
@@ -42,82 +57,65 @@ def navbar(active_page: str):
         color: #8b949e !important;
         font-size: 13px !important;
         font-weight: 400 !important;
-        padding: 10px 4px !important;
+        padding: 12px 4px !important;
         width: 100% !important;
         white-space: nowrap !important;
-        transition: color 0.15s !important;
     }
-    div[data-testid="stHorizontalBlock"]:first-of-type .stButton > button:hover {
+    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type
+        .stButton > button:hover {
         color: #f0f6fc !important;
-        background: #21262d !important;
+        background: rgba(255,255,255,0.05) !important;
     }
 
-    /* Navbar wrapper — dark background strip */
-    .navbar-wrap {
-        background: #161b22;
-        border-bottom: 1px solid #21262d;
-        padding: 0 8px;
-        margin: -1.5rem -2rem 1.5rem -2rem;
-        display: flex;
-        align-items: center;
-    }
-    .navbar-logo {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 16px 10px 8px;
-        flex-shrink: 0;
-        min-width: 160px;
-        border-right: 1px solid #21262d;
-        margin-right: 8px;
-    }
-    .navbar-logo-icon {
-        width: 26px; height: 26px;
-        background: #238636;
-        border-radius: 6px;
-        display: flex; align-items: center; justify-content: center;
-    }
-    .navbar-logo-text {
-        font-size: 14px; font-weight: 700;
-        color: #f0f6fc; white-space: nowrap;
-    }
-    /* Active nav item — override button color */
-    .nav-active > div > button {
+    /* Active nav button */
+    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type
+        .stButton > button[data-active="true"] {
         color: #3fb950 !important;
         border-bottom: 2px solid #3fb950 !important;
         font-weight: 600 !important;
     }
+
+    /* Logo column */
+    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type
+        > div:first-child {
+        min-width: 155px !important;
+        flex-shrink: 0 !important;
+        border-right: 1px solid #21262d !important;
+        display: flex !important;
+        align-items: center !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-    # ── Logo HTML ────────────────────────────────────────────────
-    st.markdown("""
-    <div class="navbar-wrap">
-      <div class="navbar-logo">
-        <div class="navbar-logo-icon">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff"
-               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
+    # ── Logo + nav buttons in one row ────────────────────────────
+    logo_col, *nav_cols = st.columns([2] + [1] * len(PAGES))
+
+    with logo_col:
+        st.markdown("""
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 4px;">
+          <div style="width:26px;height:26px;background:#238636;border-radius:6px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span style="font-size:14px;font-weight:700;color:#f0f6fc;white-space:nowrap;">
+            SmartExpense
+          </span>
         </div>
-        <span class="navbar-logo-text">SmartExpense</span>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    # ── Nav buttons row ──────────────────────────────────────────
-    cols = st.columns(len(pages))
-    for col, (name, path) in zip(cols, pages):
-        is_active = (name == active_page)
-        # Wrap active button in a div we can target with CSS
-        if is_active:
-            col.markdown('<div class="nav-active">', unsafe_allow_html=True)
+    clicked = None
+    for col, (name, path) in zip(nav_cols, PAGES.items()):
+        label = f"**{name}**" if name == active_page else name
         with col:
-            if st.button(name, key=f"nav_{name}", use_container_width=True):
-                st.switch_page(path)
-        if is_active:
-            col.markdown('</div>', unsafe_allow_html=True)
+            if st.button(label, key=f"_nav_{name}", use_container_width=True):
+                clicked = path
 
-    st.markdown("<div style='margin-bottom:1rem;'></div>", unsafe_allow_html=True)
+    # ── Navigate AFTER full navbar is rendered ───────────────────
+    if clicked:
+        st.session_state["_nav_goto"] = clicked
+        st.rerun()
