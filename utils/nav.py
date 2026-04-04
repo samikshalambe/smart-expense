@@ -2,19 +2,21 @@ import streamlit as st
 
 
 def require_login():
-    """Redirect to login if not authenticated."""
+    """Stop the page and show login prompt if not authenticated."""
     for key, default in [("logged_in", False), ("username", None)]:
         if key not in st.session_state:
             st.session_state[key] = default
     if not st.session_state["logged_in"]:
-        st.switch_page("app.py")
+        st.error("Please log in to access this page.")
+        st.stop()
 
 
 def navbar(active_page: str):
     """
-    Top navigation bar.
-    Buttons store the destination in session state.
-    st.switch_page() is called AFTER the full navbar renders — never inside a column.
+    Top navigation bar using st.page_link.
+    Works correctly when pages are run via st.navigation() in app.py.
+    st.page_link is the right API here — st.switch_page cannot be called
+    from within a page that was launched by st.navigation.
     """
 
     PAGES = {
@@ -26,73 +28,59 @@ def navbar(active_page: str):
         "Settings":     "pages/6_Settings.py",
     }
 
-    # ── Handle pending navigation from previous click ────────────
-    # st.switch_page must be called at the top level — never inside
-    # a column or button callback. We store the destination in session
-    # state and switch here, before anything else renders.
-    if st.session_state.get("_nav_goto"):
-        dest = st.session_state.pop("_nav_goto")
-        st.switch_page(dest)
-
     # ── CSS ──────────────────────────────────────────────────────
     st.markdown("""
     <style>
-    /* Dark navbar strip */
-    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type {
+    /* Navbar row background */
+    div[data-testid="stHorizontalBlock"]:has(div[data-testid="stPageLink"]) {
         background: #161b22 !important;
         border-bottom: 1px solid #21262d !important;
-        padding: 0 8px !important;
-        margin: -1.5rem -2rem 1rem -2rem !important;
+        padding: 2px 12px !important;
+        margin: -1.5rem -2rem 1.5rem -2rem !important;
         gap: 0 !important;
-        align-items: stretch !important;
+        align-items: center !important;
     }
-
-    /* All nav buttons — inactive */
-    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type
-        .stButton > button {
-        background: transparent !important;
-        border: none !important;
-        border-bottom: 2px solid transparent !important;
-        border-radius: 0 !important;
-        color: #8b949e !important;
-        font-size: 13px !important;
-        font-weight: 400 !important;
-        padding: 12px 4px !important;
-        width: 100% !important;
-        white-space: nowrap !important;
-    }
-    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type
-        .stButton > button:hover {
-        color: #f0f6fc !important;
-        background: rgba(255,255,255,0.05) !important;
-    }
-
-    /* Active nav button */
-    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type
-        .stButton > button[data-active="true"] {
-        color: #3fb950 !important;
-        border-bottom: 2px solid #3fb950 !important;
-        font-weight: 600 !important;
-    }
-
-    /* Logo column */
-    [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]):first-of-type
-        > div:first-child {
-        min-width: 155px !important;
-        flex-shrink: 0 !important;
-        border-right: 1px solid #21262d !important;
+    /* Page link default style */
+    div[data-testid="stPageLink"] a {
         display: flex !important;
         align-items: center !important;
+        justify-content: center !important;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        color: #8b949e !important;
+        text-decoration: none !important;
+        padding: 12px 6px !important;
+        border-radius: 0 !important;
+        border-bottom: 2px solid transparent !important;
+        white-space: nowrap !important;
+        transition: color 0.15s !important;
+    }
+    div[data-testid="stPageLink"] a:hover {
+        color: #f0f6fc !important;
+        background: rgba(255,255,255,0.04) !important;
+    }
+    /* Active page link */
+    div[data-testid="stPageLink"] a[aria-current="page"] {
+        color: #3fb950 !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid #3fb950 !important;
+    }
+    /* Logo column */
+    div[data-testid="stHorizontalBlock"]:has(div[data-testid="stPageLink"])
+        > div:first-child {
+        min-width: 160px !important;
+        flex-shrink: 0 !important;
+        border-right: 1px solid #21262d !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # ── Logo + nav buttons in one row ────────────────────────────
+    # ── Logo + nav links ─────────────────────────────────────────
     logo_col, *nav_cols = st.columns([2] + [1] * len(PAGES))
 
     with logo_col:
         st.markdown("""
-        <div style="display:flex;align-items:center;gap:8px;padding:8px 4px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 4px;">
           <div style="width:26px;height:26px;background:#238636;border-radius:6px;
                       display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff"
@@ -108,14 +96,14 @@ def navbar(active_page: str):
         </div>
         """, unsafe_allow_html=True)
 
-    clicked = None
     for col, (name, path) in zip(nav_cols, PAGES.items()):
-        label = f"**{name}**" if name == active_page else name
         with col:
-            if st.button(label, key=f"_nav_{name}", use_container_width=True):
-                clicked = path
+            st.page_link(path, label=name, use_container_width=True)
 
-    # ── Navigate AFTER full navbar is rendered ───────────────────
-    if clicked:
-        st.session_state["_nav_goto"] = clicked
-        st.rerun()
+    # ── Logout (only on Settings page) ───────────────────────────
+    if active_page == "Settings":
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("↩ Log out", key="_logout"):
+            st.session_state["logged_in"] = False
+            st.session_state["username"]  = None
+            st.rerun()
