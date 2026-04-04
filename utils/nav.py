@@ -1,62 +1,100 @@
 import streamlit as st
 
+
 def require_login():
     """Redirect to login if not authenticated."""
     for key, default in [("logged_in", False), ("username", None)]:
         if key not in st.session_state:
             st.session_state[key] = default
     if not st.session_state["logged_in"]:
-        # Temporarily disabled st.switch_page to avoid errors
-        # st.switch_page("app.py")
-        st.error("Please log in to access this page.")
-        st.stop()
+        st.switch_page("app.py")
+
 
 def navbar(active_page: str):
-    """Render the top Homely-style navigation bar."""
+    """Render the top navigation bar using native st.page_link with CSS styling."""
+
     pages = {
-        "Dashboard":   ("pages/1_Dashboard.py",   "Dashboard",  "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"),
-        "Transactions":("pages/2_Transactions.py", "Transactions","M4 6h16M4 12h16M4 18h7"),
-        "AI Forecast": ("pages/3_Forecast.py",     "AI Forecast", "M22 12h-4l-3 9L9 3l-3 9H2"),
-        "Split Bills": ("pages/4_Split.py",        "Split Bills", "M6 3h12M6 8h8a4 4 0 0 1 0 8H6l5 5M6 16h2"),
-        "Smart Upload":("pages/5_Upload.py",       "Smart Upload","M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"),
-        "Settings":    ("pages/6_Settings.py",     "Settings",   "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"),
+        "Dashboard":    "pages/1_Dashboard.py",
+        "Transactions": "pages/2_Transactions.py",
+        "AI Forecast":  "pages/3_Forecast.py",
+        "Split Bills":  "pages/4_Split.py",
+        "Smart Upload": "pages/5_Upload.py",
+        "Settings":     "pages/6_Settings.py",
     }
 
-    nav_items_html = ""
-    for name, (path, label, icon_path) in pages.items():
-        is_active = (name == active_page)
-        color     = "#3fb950" if is_active else "#8b949e"
-        underline = f"border-bottom:2px solid #3fb950;padding-bottom:2px;" if is_active else ""
-        nav_items_html += f"""
-        <a href="/{path.replace('pages/','').replace('.py','').strip()}"
-           style="display:flex;align-items:center;gap:6px;text-decoration:none;color:{color};
-                  font-size:13px;font-weight:{'600' if is_active else '400'};
-                  white-space:nowrap;{underline}padding:4px 0;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-               stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="{icon_path}"/>
-          </svg>
-          {label}
-        </a>"""
+    # ── CSS: style the page_link row to look like a navbar ───────
+    st.markdown("""
+    <style>
+    /* The horizontal block containing page links becomes the navbar */
+    div[data-testid="stHorizontalBlock"]:has(div[data-testid="stPageLink"]) {
+        background: #161b22 !important;
+        border-bottom: 1px solid #21262d !important;
+        padding: 4px 16px !important;
+        margin: -1.5rem -2rem 1.5rem -2rem !important;
+        gap: 0 !important;
+        align-items: center !important;
+    }
 
-    st.markdown(f"""
-    <div style="background:#161b22;border-bottom:1px solid #21262d;
-                padding:12px 24px;margin:-1.5rem -2rem 1.5rem -2rem;
-                display:flex;align-items:center;gap:0;">
-      <div style="display:flex;align-items:center;gap:8px;margin-right:32px;flex-shrink:0;">
-        <div style="width:28px;height:28px;background:#238636;border-radius:6px;
-                    display:flex;align-items:center;justify-content:center;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff"
-               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <span style="font-size:15px;font-weight:700;color:#f0f6fc;">SmartExpense</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:24px;flex:1;overflow-x:auto;">
-        {nav_items_html}
-      </div>
-    </div>
+    /* Default link style */
+    div[data-testid="stPageLink"] a {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        color: #8b949e !important;
+        text-decoration: none !important;
+        padding: 10px 8px !important;
+        border-radius: 6px !important;
+        border-bottom: 2px solid transparent !important;
+        white-space: nowrap !important;
+        transition: color 0.15s, background 0.15s !important;
+    }
+
+    /* Hover */
+    div[data-testid="stPageLink"] a:hover {
+        color: #f0f6fc !important;
+        background: #21262d !important;
+    }
+
+    /* Active page — green underline */
+    div[data-testid="stPageLink"] a[aria-current="page"] {
+        color: #3fb950 !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid #3fb950 !important;
+        background: transparent !important;
+    }
+
+    /* Logo column (first column) */
+    div[data-testid="stHorizontalBlock"]:has(div[data-testid="stPageLink"])
+        > div:first-child {
+        min-width: 170px !important;
+        flex-shrink: 0 !important;
+    }
+    </style>
     """, unsafe_allow_html=True)
+
+    # ── Logo + nav links rendered as Streamlit columns ────────────
+    logo_col, *nav_cols = st.columns([2] + [1] * len(pages))
+
+    with logo_col:
+        st.markdown("""
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;">
+          <div style="width:28px;height:28px;background:#238636;border-radius:6px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span style="font-size:15px;font-weight:700;color:#f0f6fc;white-space:nowrap;">
+            SmartExpense
+          </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    for col, (name, path) in zip(nav_cols, pages.items()):
+        with col:
+            st.page_link(path, label=name, use_container_width=True)
